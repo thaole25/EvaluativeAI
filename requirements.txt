@@ -1,0 +1,15 @@
+numpy
+matplotlib
+scipy
+pandas
+scikit-learn
+seaborn
+tqdm
+attrdict3
+pillow
+gradio
+pydotplus
+pygraphviz
+colored
+scikit-image
+torchinfo
