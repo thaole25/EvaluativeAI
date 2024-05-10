@@ -13,7 +13,7 @@ import argparse
 
 from preprocessing import cnn_backbones
 import preprocessing.params as params
-
+import keypass
 
 parser = argparse.ArgumentParser(description="EvaSKan")
 parser.add_argument("-auth", type=bool, default=False, help="activate authentication")
@@ -26,22 +26,22 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-plt.rcParams.update({"font.size": 20})
+plt.rcParams.update({"font.size": 25})
 example_images = [
-    "test_data/HAM10000_images_part_2/ISIC_0031457.jpg",  # true label 3
-    "test_data/HAM10000_images_part_1/ISIC_0029040.jpg",  # true label 2
-    "test_data/HAM10000_images_part_2/ISIC_0033594.jpg",  # true label 4
+    "test_data/HAM10000_images_part_1/ISIC_0024880.jpg",  # true label 2
+    "test_data/HAM10000_images_part_1/ISIC_0025661.jpg",  # true label 2
+    "test_data/HAM10000_images_part_1/ISIC_0026492.jpg",  # true label 0
 ]
 example_hypotheses = ["MEL", "BKL", "BCC"]
 DXLABELS = ["AKIEC", "BCC", "BKL", "DF", "MEL", "NV", "VASC"]
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL = "resnext50"
-SEED = 0
+SEED = 3
 CNN_MODEL_CHECKPOINT = "../save_model/checkpoint-{}-seed{}.pt".format(MODEL, SEED)
 
 if args.algo == "ice":
     NO_CONCEPTS = 8
-    WOE_CLF = "gnb"
+    CLF = "gnb"
     LAYER_NAME = params.ICE_CONCEPT_LAYER[MODEL]
     DESCRIPTION = """
     # EvaSKan - Evaluative Skin Cancer
@@ -51,10 +51,11 @@ if args.algo == "ice":
 
     For education and research use only.
     """
+    FEATURE_PATH = "Explainers/ICE_HAM_resnext50_ncomp8_seed0_NMF/feature_imgs"
 
 else:
     NO_CONCEPTS = 12
-    WOE_CLF = "gnb"
+    CLF = "gnb"
     LAYER_NAME = params.PCBM_CONCEPT_LAYER[MODEL]
     DESCRIPTION = """
     # EvaSKan - Evaluative Skin Cancer
@@ -64,18 +65,17 @@ else:
 
     For education and research use only.
     """
+    FEATURE_PATH = "Explainers/PCBM_HAM_resnext50_ncomp12_seed0_0.01_50/feature_imgs"
 
-FEATURE_PATH = "Explainers/{}_HAM_{}_ncomp{}_seed{}/feature_imgs".format(
-    args.algo.upper(), MODEL, NO_CONCEPTS, SEED
-)
+
 EXP_PATH = "../save_model/{}_Exp_{}_ncomp{}_seed{}_mean_{}.sav".format(
-    args.algo.upper(), MODEL, NO_CONCEPTS, SEED, WOE_CLF
+    args.algo.upper(), MODEL, NO_CONCEPTS, SEED, CLF
 )
 WOE_EXPLAINER = "../save_model/{}_woeexplainer_{}_ncomp{}_seed{}_mean_{}.sav".format(
-    args.algo.upper(), MODEL, NO_CONCEPTS, SEED, WOE_CLF
+    args.algo.upper(), MODEL, NO_CONCEPTS, SEED, CLF
 )
 CONCEPT_MODEL = "../save_model/{}_concept_{}_ncomp{}_seed{}_mean_{}.sav".format(
-    args.algo.upper(), MODEL, NO_CONCEPTS, SEED, WOE_CLF
+    args.algo.upper(), MODEL, NO_CONCEPTS, SEED, CLF
 )
 
 CACHE_PATH = Path("test_data/cache")
@@ -260,4 +260,7 @@ with demo:
         outputs=[output_positive, output_negative],
     )
 
-demo.launch(share=False)
+if args.auth:
+    demo.launch(share=False, auth=(keypass.account, keypass.password))
+else:
+    demo.launch(share=False)

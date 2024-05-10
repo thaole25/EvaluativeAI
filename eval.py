@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import ttest_ind
+import matplotlib.pyplot as plt
 
 from collections import defaultdict
 import math
@@ -37,7 +38,7 @@ MODELS = [
     "resnet50",
     "resneXt50",
     "resnet152",
-]  # 'resnet34' 'resnext101', 'resnext101_l', 'inception'
+]
 CONCEPTS1 = list(np.arange(4, 13))
 CONCEPTS2 = list(np.arange(5, 45, 5))
 ALL_CONCEPTS = list(np.arange(4, 13)) + list(np.arange(15, 85, 5))
@@ -126,22 +127,20 @@ for model in MODELS:
                         & (ice_woe_df["clf"] == clf)
                         & (ice_woe_df["reducer"] == reducer)
                     ]
-                    if concept_df.shape[0] != NUM_SEEDS:
-                        acc_count = concept_df.shape[0]
-                    elif concept_clf_df.shape[0] != NUM_SEEDS:
-                        acc_count = concept_clf_df.shape[0]
-                    elif woe_df.shape[0] != NUM_SEEDS:
-                        acc_count = woe_df.shape[0]
-                    else:
-                        acc_count = NUM_SEEDS
-                    if acc_count == 0:
-                        continue
+                    acc_count = max(
+                        concept_df.shape[0], concept_clf_df.shape[0], woe_df.shape[0]
+                    )
                     ice_concept_stats["backbone_model"].append(model)
                     ice_concept_stats["clf"].append(clf)
                     ice_concept_stats["reducer"].append(reducer)
                     ice_concept_stats["ICE no concepts"].append(concept)
                     ice_concept_stats["ice count"].append(acc_count)
-                    if concept < 10 and model == "resneXt50" and clf == "gnb":
+                    if (
+                        concept < 10
+                        and model == "resneXt50"
+                        and clf == "gnb"
+                        and reducer == "NMF"
+                    ):
                         print(model, concept, clf, reducer)
                         print(
                             "ice vs. woe",
@@ -348,3 +347,141 @@ for model in MODELS:
         ].values.flatten().tolist()
 
     print(latex_df.to_latex(index=False, bold_rows=True))
+
+LINESTYLES = ["solid", "dotted", "dashdot", "dashed", ("loosely dotted", (0, (1, 10)))]
+ice_groups = ice_stats_df.groupby("backbone_model")[
+    [
+        "ICE no concepts",
+        "test_f1_score_mean",
+        "test_f1_score_std",
+        "ice_f1_score_mean",
+        "ice_f1_score_std",
+        "ice_clf_f1_score_mean",
+        "ice_clf_f1_score_std",
+        "woe_f1_score_mean",
+        "woe_f1_score_std",
+        "clf",
+        "reducer",
+    ]
+]
+
+
+def plot(
+    method,
+    selected_model_df,
+    x_axis,
+    x_label,
+    y_label,
+    x_col,
+    backbone,
+    img_path,
+    reducer,
+):
+    FONTSIZE = 16
+    fig, ax = plt.subplots(figsize=(6, 5))
+    df = selected_model_df.copy()
+    df = df[(df["reducer"] == reducer)]
+    df = df.loc[df[x_col].isin(x_axis)]
+
+    ax.errorbar(
+        x_axis,
+        df["test_f1_score_mean"],
+        df["test_f1_score_std"],
+        label="Original " + backbone,
+        linestyle=LINESTYLES[0],
+        marker="o",
+    )
+
+    ax.errorbar(
+        x_axis,
+        df[method + "_f1_score_mean"],
+        df[method + "_f1_score_std"],
+        label=method.upper(),
+        linestyle=LINESTYLES[1],
+        marker="o",
+    )
+    ax.errorbar(
+        x_axis,
+        df["woe_f1_score_mean"],
+        df["woe_f1_score_std"],
+        label=method.upper() + "+WoE",
+        linestyle=LINESTYLES[2],
+        marker="o",
+    )
+    ax.legend(loc="lower right", fontsize=FONTSIZE)
+    ax.set_ylabel(y_label, fontsize=FONTSIZE)
+    ax.set_xlabel(x_label, fontsize=FONTSIZE)
+    ax.set_title("{} using {}".format(method, backbone).upper(), fontsize=FONTSIZE + 2)
+    ax.set_ylim(40, 100)
+    ax.tick_params(axis="both", which="major", labelsize=FONTSIZE - 5)
+    fig.savefig(img_path)
+
+
+def plot_reducer(
+    method, selected_model_df, x_axis, x_label, y_label, x_col, backbone, img_path
+):
+    FONTSIZE = 16
+    fig, ax = plt.subplots(figsize=(6, 5))
+    df = selected_model_df.copy()
+    df = df.loc[df[x_col].isin(x_axis)]
+    for i, reducer in enumerate(REDUCERS):
+        selected_df = df[(df["reducer"] == reducer)]
+        ax.errorbar(
+            x_axis,
+            selected_df[method + "_f1_score_mean"],
+            selected_df[method + "_f1_score_std"],
+            label=reducer + "-ICE",
+            linestyle=LINESTYLES[i],
+            marker="o",
+        )
+    ax.legend(loc="lower right", fontsize=FONTSIZE)
+    ax.set_ylabel(y_label, fontsize=FONTSIZE)
+    ax.set_xlabel(x_label, fontsize=FONTSIZE)
+    ax.set_title(
+        "{} using {}".format(method, backbone).upper(),
+        fontsize=FONTSIZE + 2,
+    )
+    ax.set_ylim(40, 100)
+    ax.tick_params(axis="both", which="major", labelsize=FONTSIZE - 5)
+    fig.savefig(img_path)
+
+
+for m in ["resneXt50"]:
+    if m in ice_groups.groups.keys():
+        ice_df = ice_groups.get_group(m)
+        ice_df = ice_df[ice_df["clf"] == "gnb"]
+        plot_reducer(
+            "ice",
+            ice_df,
+            x_axis=CONCEPTS2,
+            x_label="Number of concepts",
+            y_label=None,
+            x_col="ICE no concepts",
+            backbone=m,
+            img_path=params.RESULT_PATH / "ice_{}_by_reducers.png".format(m),
+        )
+        for _, reducer in enumerate(["NMF"]):
+            plot(
+                "ice",
+                ice_df,
+                x_axis=CONCEPTS1,
+                x_label="Number of concepts",
+                y_label="F1-score (%)",
+                x_col="ICE no concepts",
+                backbone=m,
+                img_path=params.RESULT_PATH
+                / "small_ice_{}_{}_by_no_concepts.png".format(m, reducer),
+                reducer=reducer,
+            )
+            plot(
+                "ice",
+                ice_df,
+                x_axis=CONCEPTS2,
+                x_label="Number of concepts",
+                y_label=None,
+                x_col="ICE no concepts",
+                backbone=m,
+                img_path=params.RESULT_PATH
+                / "ice_{}_{}_by_no_concepts.png".format(m, reducer),
+                reducer=reducer,
+            )

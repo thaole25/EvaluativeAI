@@ -128,7 +128,6 @@ class ConceptUtils:
     def get_ice_model(
         self, backbone_model, balanced_train_dl_per_class, original_train_dl_per_class
     ):
-        # Can only be used in ICE code
         print("Running the concept model...")
         LAYER_NAME = params.ICE_CONCEPT_LAYER[self.args.model]
 

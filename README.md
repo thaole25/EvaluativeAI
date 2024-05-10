@@ -1,6 +1,10 @@
-# Evaluative AI
+# Visual Evaluative AI - EvaSKan
 
-**EvaluativeAI** is a tool for decision support by providing positive and negative evidence for a given hypothesis. This tool finds high-level human concepts in an image and generates the Weight of Evidence (WoE) for each hypothesis in the decision-making process. We also apply this tool in the skin cancer domain by building a web-based application that allows users to upload a dermatoscopic image, select a hypothesis and analyse their decisions by evaluating the provided evidence.
+**Visual Evaluative AI** is a tool for decision support by providing positive and negative evidence for a given hypothesis. This tool finds high-level human concepts in an image and generates the Weight of Evidence (WoE) for each hypothesis in the decision-making process. We also apply this tool in the skin cancer domain by building a web-based application that allows users to upload a dermatoscopic image, select a hypothesis and analyse their decisions by evaluating the provided evidence.
+
+By applying this tool, we build a web-based application called **EvaSKan** to evaluate dermatoscopic images. Users can select a hypothesis and the application will generate positive/negative evidence for that particular hypothesis.
+
+![demo](img/EvaSKan.png)
 
 ## Prerequisites
 ### Environment
@@ -89,20 +93,29 @@ Please put the datasets in the right folder followed the code structure above.
 ## Usage
 
 ### Reproducibility
-To reproduce Table 1 in the paper ...
+To reproduce the results in the paper ..., please either use pre-trained models or train from scratch as described below. Then, run `python eval.py` to see the results.
 
 #### Use pre-trained models
 - Available pre-trained models
     + Pre-trained CNN backbones Resnet50, ResneXt50 and Resnet152: in the folder `save_model`
     + Pre-trained concept models ICE, PCBM: pickle files in the folder `Explainers`
-- Please refer to `reproducibility/table1/pretrained.sh` for the training using pre-trained models above
+- Please refer to `reproducibility/script/pretrained.sh` for the training using pre-trained models above
 
 #### Train from scratch
 - Step by step to train from scratch
     + Train the CNN backbone model
     + For unsupervised learning concept, train the concept model ICE
     + For supervised learning concept, we first need to train the concept bank using the 7pt checklist dataset, then train the concept model PCBM using the HAM10000 dataset
-- Please refer to `reproducibility/table1/scratch.sh` for training from scratch
+- Please refer to `reproducibility/script/scratch.sh` for training from scratch
+
+### Run the app
+```
+# Use unsupervised learning concept model (ICE)
+python app.py --algo ice
+
+# Use supervised learning concept model (PCBM)
+python app.py --algo pcbm
+```
 
 ## References
 - [WoE package](https://github.com/dmelis/interpretwoe)

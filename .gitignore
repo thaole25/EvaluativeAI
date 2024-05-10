@@ -9,5 +9,11 @@ keypass.py
 pcbm_output/
 test_data/
 reproducibility/*/*.out
+reproducibility/output
 tmp*
 zip.bash
+test/
+clean*
+evaluativeai_pretrained/
+local*
+cp*
