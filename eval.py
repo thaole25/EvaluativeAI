@@ -322,6 +322,12 @@ for model in MODELS:
         & (ice_stats_df["clf"] == "gnb")
         & (ice_stats_df["reducer"] == "NMF")
     ]
+    selected_ice_df_5 = ice_stats_df[
+        (ice_stats_df["backbone_model"] == model)
+        & (ice_stats_df["ICE no concepts"] == 5)
+        & (ice_stats_df["clf"] == "gnb")
+        & (ice_stats_df["reducer"] == "NMF")
+    ]
     selected_pcbm_df = pcbm_stats_df[
         (pcbm_stats_df["backbone_model"] == model)
         & (pcbm_stats_df["pcbm_classifier"] == "ridge")
@@ -329,7 +335,7 @@ for model in MODELS:
         & (pcbm_stats_df["7pt no training samples"] == 50)
     ]
     for i, submodel in enumerate(SUBMODELS_ICE):
-        latex_df.loc[ridx + i] = [model + " " + submodel] + selected_ice_df[
+        latex_df.loc[ridx + i] = [model + " " + submodel + "(8)"] + selected_ice_df[
             [
                 submodel + "_precision",
                 submodel + "_sensitivity",
@@ -339,6 +345,15 @@ for model in MODELS:
     ridx = ridx + len(SUBMODELS_ICE)
     for i, submodel in enumerate(SUBMODELS_PCBM):
         latex_df.loc[ridx + i] = [model + " " + submodel] + selected_pcbm_df[
+            [
+                submodel + "_precision",
+                submodel + "_sensitivity",
+                submodel + "_f1_score",
+            ]
+        ].values.flatten().tolist()
+    ridx = ridx + len(SUBMODELS_PCBM)
+    for i, submodel in enumerate(SUBMODELS_ICE):
+        latex_df.loc[ridx + i] = [model + " " + submodel + "(5)"] + selected_ice_df_5[
             [
                 submodel + "_precision",
                 submodel + "_sensitivity",

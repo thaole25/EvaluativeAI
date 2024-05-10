@@ -74,6 +74,7 @@ EvaluativeAI
 │       ├── pretrained.sh
 │       └── scratch.sh
 ├── requirements.txt
+├── test_data
 ├── train_cnn.py
 ├── utils.py
 └── woe
@@ -109,6 +110,8 @@ To reproduce the results in the paper ..., please either use pre-trained models 
 - Please refer to `reproducibility/script/scratch.sh` for training from scratch
 
 ### Run the app
+Before running the app, please download the `save_model` folder and `test_data` in `for_app.zip` [here]() and follow the code structure to put them in the right place.
+
 ```
 # Use unsupervised learning concept model (ICE)
 python app.py --algo ice

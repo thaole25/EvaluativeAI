@@ -26,7 +26,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-plt.rcParams.update({"font.size": 25})
+plt.rcParams.update({"font.size": 20})
 example_images = [
     "test_data/HAM10000_images_part_1/ISIC_0024880.jpg",  # true label 2
     "test_data/HAM10000_images_part_1/ISIC_0025661.jpg",  # true label 2
