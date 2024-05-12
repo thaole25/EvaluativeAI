@@ -70,7 +70,7 @@ EvaluativeAI
 │   └── params.py
 ├── reproducibility
 │   ├── output
-│   └── table1
+│   └── script
 │       ├── pretrained.sh
 │       └── scratch.sh
 ├── requirements.txt

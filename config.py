@@ -146,4 +146,11 @@ def set_arguments():
         default=False,
         help="debug mode - without adding the result to csv",
     )
+    parser.add_argument(
+        "-sa",
+        "--save-for-app",
+        type=bool,
+        default=False,
+        help="save models for the app",
+    )
     return parser.parse_args()

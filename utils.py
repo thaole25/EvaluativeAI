@@ -161,7 +161,7 @@ class ConceptUtils:
             print("Retrain the concept model...")
             # train reducer based on target classes
             Exp.train_model(ice_model, balanced_train_dl_per_class)
-            if self.args.example or self.args.save_model:
+            if self.args.example or self.args.save_for_app:
                 # generate features
                 Exp.generate_features(
                     ice_model, original_train_dl_per_class, self.args.threshold
@@ -169,11 +169,12 @@ class ConceptUtils:
                 # generate global explanations
                 # Exp.global_explanations()
                 # save the explainer, use load to load it with the same title
+            if self.args.save_model:
                 Exp.save()
         else:
             Exp.load()
 
-        if self.args.save_model:
+        if self.args.save_for_app:
             print("Saving concept model...")
             torch.save(Exp, params.MODEL_PATH / self.EXP_SAVE)
             torch.save(ice_model, params.MODEL_PATH / self.CONCEPT_SAVE)
@@ -281,7 +282,7 @@ class ConceptUtils:
             Exp.reducer_err = [0] * Exp.n_components
             Exp.cavs = r.cavs
             Exp._estimate_weight(pcbm_model, balanced_train_dl_per_class)
-            if self.args.example or self.args.save_model:
+            if self.args.example or self.args.save_for_app:
                 # generate features
                 Exp.generate_features(
                     pcbm_model,
@@ -290,11 +291,12 @@ class ConceptUtils:
                 )
                 # generate global explanations
                 # Exp.global_explanations(concept_names=self.concept_names)
+            if self.args.save_model:
                 Exp.save()
         else:
             Exp.load()
 
-        if self.args.save_model:
+        if self.args.save_for_app:
             print("Saving concept model...")
             torch.save(Exp, params.MODEL_PATH / self.EXP_SAVE)
             torch.save(pcbm_model, params.MODEL_PATH / self.CONCEPT_SAVE)
@@ -453,7 +455,7 @@ class WoeUtils:
             featgroup_names=FEATGROUP_NAMES,
         )
 
-        if self.args.save_model:
+        if self.args.save_for_app:
             WOE_EXPLAINER = "{}_woeexplainer_{}_ncomp{}_seed{}_{}_{}.sav".format(
                 self.args.algo.upper(),
                 self.args.model,

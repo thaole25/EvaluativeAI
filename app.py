@@ -51,7 +51,9 @@ if args.algo == "ice":
 
     For education and research use only.
     """
-    FEATURE_PATH = "Explainers/ICE_HAM_resnext50_ncomp8_seed0_NMF/feature_imgs"
+    FEATURE_PATH = "Explainers/ICE_HAM_{}_ncomp{}_seed{}_NMF/feature_imgs".format(
+        MODEL, NO_CONCEPTS, SEED
+    )
 
 else:
     NO_CONCEPTS = 12
@@ -65,7 +67,9 @@ else:
 
     For education and research use only.
     """
-    FEATURE_PATH = "Explainers/PCBM_HAM_resnext50_ncomp12_seed0_0.01_50/feature_imgs"
+    FEATURE_PATH = "Explainers/PCBM_HAM_{}_ncomp{}_seed{}_0.01_50/feature_imgs".format(
+        MODEL, NO_CONCEPTS, SEED
+    )
 
 
 EXP_PATH = "../save_model/{}_Exp_{}_ncomp{}_seed{}_mean_{}.sav".format(

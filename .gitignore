@@ -9,7 +9,7 @@ keypass.py
 pcbm_output/
 test_data/
 reproducibility/*/*.out
-reproducibility/output
+reproducibility/output*
 tmp*
 zip.bash
 test/

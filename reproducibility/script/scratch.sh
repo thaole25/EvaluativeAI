@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-#SBATCH --time=16:00:00
+#SBATCH --time=12:00:00
 #SBATCH --array=0,1,2,3,4,5,6,42,10,100,149,222,289,377,445,498,578,789,999,3407
 #SBATCH --output="o-scratch_%a.out"
 
@@ -48,3 +48,7 @@ for model in "${models[@]}"; do
     time python main.py -m $model --lr 0.01 --n-samples 50 --seed ${SLURM_ARRAY_TASK_ID} --run-mode concept --algo pcbm --pcbm-classifier ridge -rc True --save-model True
     time python main.py -m $model --lr 0.01 --n-samples 50 --seed ${SLURM_ARRAY_TASK_ID} --run-mode woe --algo pcbm --pcbm-classifier ridge --save-model True
 done;
+
+# For the app
+time python main.py -m resnext50 -nc 8 --seed 3 --run-mode woe --reducer NMF --algo ice -rc True -sa True --threshold 0.6 --debug True
+time python main.py -m resnext50 --lr 0.01 --n-samples 50 --seed 3 --run-mode woe --algo pcbm --pcbm-classifier ridge -rc True -sa True --threshold 0.6 --debug True
