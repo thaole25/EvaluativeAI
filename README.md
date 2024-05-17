@@ -97,9 +97,10 @@ Please put the datasets in the right folder followed the code structure above.
 To reproduce the results in the paper ..., please either use pre-trained models or train from scratch as described below. Then, run `python eval.py` to see the results.
 
 #### Use pre-trained models
-- Available pre-trained models
-    + Pre-trained CNN backbones Resnet50, ResneXt50 and Resnet152: in the folder `save_model`
+- Available pre-trained models [Download](https://doi.org/10.5281/zenodo.11205936)
+    + Pre-trained CNN backbones Resnet50, ResneXt50 and Resnet152: in the folder `save_model` 
     + Pre-trained concept models ICE, PCBM: pickle files in the folder `Explainers`
+    + Pre-trained concept bank for PCBM: in the folder `pcbm_output`
 - Please refer to `reproducibility/script/pretrained.sh` for the training using pre-trained models above
 
 #### Train from scratch
@@ -110,13 +111,13 @@ To reproduce the results in the paper ..., please either use pre-trained models 
 - Please refer to `reproducibility/script/scratch.sh` for training from scratch
 
 ### Run the app
-Before running the app, please download the `save_model` folder and `test_data` in `for_app.zip` [here]() and follow the code structure to put them in the right place.
+Before running the app, please download the `for_app.zip` [Download](https://doi.org/10.5281/zenodo.11205936) and follow the code structure to put them in the right place.
 
 ```
-# Use unsupervised learning concept model (ICE)
+# Use an unsupervised learning concept model (ICE)
 python app.py --algo ice
 
-# Use supervised learning concept model (PCBM)
+# Use a supervised learning concept model (PCBM)
 python app.py --algo pcbm
 ```
 

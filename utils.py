@@ -169,6 +169,7 @@ class ConceptUtils:
                 # generate global explanations
                 # Exp.global_explanations()
                 # save the explainer, use load to load it with the same title
+                Exp.save()
             if self.args.save_model:
                 Exp.save()
         else:
@@ -291,6 +292,7 @@ class ConceptUtils:
                 )
                 # generate global explanations
                 # Exp.global_explanations(concept_names=self.concept_names)
+                Exp.save()
             if self.args.save_model:
                 Exp.save()
         else:

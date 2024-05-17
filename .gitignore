@@ -11,6 +11,7 @@ test_data/
 reproducibility/*/*.out
 reproducibility/output*
 tmp*
+old*
 zip.bash
 test/
 clean*
