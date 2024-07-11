@@ -11,7 +11,6 @@ import logging
 import time
 import argparse
 
-from preprocessing import cnn_backbones
 import preprocessing.params as params
 import keypass
 
@@ -37,7 +36,6 @@ DXLABELS = ["AKIEC", "BCC", "BKL", "DF", "MEL", "NV", "VASC"]
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL = "resnext50"
 SEED = 3
-CNN_MODEL_CHECKPOINT = "../save_model/checkpoint-{}-seed{}.pt".format(MODEL, SEED)
 
 if args.algo == "ice":
     NO_CONCEPTS = 8
@@ -108,14 +106,6 @@ CONCEPT_NAMES = [
 Exp = torch.load(EXP_PATH, map_location=torch.device(DEVICE))
 woeexplainer = torch.load(WOE_EXPLAINER, map_location=torch.device(DEVICE))
 concept_model = torch.load(CONCEPT_MODEL, map_location=torch.device(DEVICE))
-cnn_model = cnn_backbones.selected_model(MODEL)
-cnn_model.load_state_dict(
-    torch.load(CNN_MODEL_CHECKPOINT, map_location=torch.device(DEVICE))[
-        "model_state_dict"
-    ]
-)
-cnn_model.to(device=DEVICE)
-cnn_model = cnn_model.eval()
 
 
 def woe_input_image(img_path):
