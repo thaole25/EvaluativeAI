@@ -125,3 +125,16 @@ python app.py --algo pcbm
 - [WoE package](https://github.com/dmelis/interpretwoe)
 - [ICE package](https://github.com/zhangrh93/InvertibleCE)
 - [PCBM package](https://github.com/mertyg/post-hoc-cbm)
+
+# Citation
+```bibtex
+@misc{le2024visualevaluativeaihypothesisdriven,
+      title={Visual Evaluative AI: A Hypothesis-Driven Tool with Concept-Based Explanations and Weight of Evidence},
+      author={Thao Le, Tim Miller, Ruihan Zhang, Liz Sonenberg, Ronal Singh},
+      year={2024},
+      eprint={2407.04710},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2407.04710},
+}
+```
