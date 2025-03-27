@@ -80,9 +80,10 @@ class SkinCancerDataset(Dataset):
 
 
 class BasicDataset(Dataset):
-    def __init__(self, xs, ys):
+    def __init__(self, xs, ys, paths):
         self.xs = xs
         self.ys = ys
+        self.paths = paths
 
     def __len__(self):
         return len(self.xs)
@@ -90,7 +91,8 @@ class BasicDataset(Dataset):
     def __getitem__(self, index):
         x = self.xs[index]
         y = self.ys[index]
-        return x, y
+        path = self.paths[index]
+        return x, y, path
 
 
 def loader_to_numpy(loader):
@@ -109,10 +111,12 @@ def loader_to_numpy(loader):
 
 def get_loader_per_class(data_dl: DataLoader):
     data_per_class = defaultdict(list)
+    paths_per_class = defaultdict(list)
     for batch_idx, (data, target, path) in enumerate(data_dl):
         ys = target.numpy()
         for i, y in enumerate(ys):
             data_per_class[y].append(data[i])
+            paths_per_class[y].append(path[i])
 
     loader_per_class = []
     for y in data_per_class:
@@ -122,7 +126,7 @@ def get_loader_per_class(data_dl: DataLoader):
         assert len(ys) == len(data_per_class[y])
         loader_per_class.append(
             DataLoader(
-                BasicDataset(data_per_class[y], ys),
+                BasicDataset(data_per_class[y], ys, paths_per_class[y]),
                 batch_size=params.BATCH_SIZE,
                 num_workers=params.NUM_WORKERS,
                 # shuffle=True

@@ -1,54 +1,109 @@
+"""Utility functions for model evaluation, visualization, and concept analysis.
+
+This module provides utility functions and classes for:
+- Model evaluation and metrics calculation
+- Concept model utilities
+"""
+
+import os
+from typing import List, Dict, Tuple, Optional, Any, Union
+import numpy as np
 import torch
 import pandas as pd
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score
-import numpy as np
-
 from tqdm import tqdm
 from collections import defaultdict, OrderedDict
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score
+from PIL import Image
+from pathlib import PosixPath
 
-from woe import WoEImageGaussian, WoEExplainer
+# Local imports
+from woe import WoEGaussian, WoEExplainer
 from ice import PytorchModelWrapper, Explainer, ImageUtils
-from preprocessing import params
+from preprocessing import params, data_utils
 import classifiers
 from pcbm.models import PosthocLinearCBM
 
-# SELECTED_PRINT_TEST = (
-#     [0, 2] + [21, 23] + [41, 43] + [61, 63] + [81, 83] + [101, 103] + [121, 123]
-# )  # selected test instance to plot feature images
-
-SELECTED_PRINT_TEST = []
+# Selected test instances for visualization
+SELECTED_PRINT_TEST: List[int] = []
 
 
-def get_metrics(y_trues, y_preds):
-    acc = accuracy_score(y_trues, y_preds)
-    binary_ty = [params.IDX_TO_BINARY[i] for i in y_trues]
-    binary_y_preds = [params.IDX_TO_BINARY[i] for i in y_preds]
-    binary_acc = accuracy_score(binary_ty, binary_y_preds)
-    tn, fp, fn, tp = confusion_matrix(binary_ty, binary_y_preds).ravel()
+def calculate_binary_metrics(
+    y_true: np.ndarray, y_pred: np.ndarray
+) -> Tuple[float, float, float, float]:
+    """Calculate binary classification metrics.
+
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+
+    Returns:
+        Tuple of (sensitivity, specificity, precision, f1_score)
+    """
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
     sensitivity = tp / (tp + fn)  # recall
     specificity = tn / (tn + fp)
     precision = tp / (tp + fp)
     f1_score = 2 * (precision * sensitivity) / (precision + sensitivity)
+
+    return sensitivity, specificity, precision, f1_score
+
+
+def get_metrics(
+    y_true: np.ndarray, y_pred: np.ndarray
+) -> Tuple[float, float, float, float, float, float]:
+    """Calculate all evaluation metrics.
+
+    Args:
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+
+    Returns:
+        Tuple of (accuracy, binary_accuracy, sensitivity, specificity, precision, f1_score)
+    """
+    # Calculate overall accuracy
+    acc = accuracy_score(y_true, y_pred)
+
+    # Convert to binary labels
+    binary_true = [params.IDX_TO_BINARY[i] for i in y_true]
+    binary_pred = [params.IDX_TO_BINARY[i] for i in y_pred]
+
+    # Calculate binary accuracy
+    binary_acc = accuracy_score(binary_true, binary_pred)
+
+    # Calculate other binary metrics
+    sensitivity, specificity, precision, f1_score = calculate_binary_metrics(
+        binary_true, binary_pred
+    )
+
     return acc, binary_acc, sensitivity, specificity, precision, f1_score
 
 
-def print_results(method_name, y_true, y_pred, model_row, args):
-    acc, binary_acc, sensitivity, specificity, precision, f1_score = get_metrics(
-        y_true, y_pred
-    )
-    print("Accuracy on test {}: {:4.2f}%".format(method_name, acc * 100))
-    model_row.append(acc * 100)
-    model_row.append(binary_acc * 100)
-    model_row.append(sensitivity * 100)
-    model_row.append(specificity * 100)
-    model_row.append(precision * 100)
-    model_row.append(f1_score * 100)
-    # cm = confusion_matrix(y_true, y_pred, normalize="true")
-    # disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-    # img_name = params.RESULT_PATH / "{}_matrix_{}_ncomp{}_seed{}.png".format(
-    #     method_name, args.model, args.no_concepts, args.seed
-    # )
-    # disp.plot().figure_.savefig(img_name)
+def print_results(
+    method_name: str,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    model_row: List[float],
+    args: Any,
+) -> None:
+    """Print and store evaluation results.
+
+    Args:
+        method_name: Name of the method being evaluated
+        y_true: Ground truth labels
+        y_pred: Predicted labels
+        model_row: List to store metrics
+        args: Arguments containing configuration
+    """
+    # Calculate all metrics
+    metrics = get_metrics(y_true, y_pred)
+    acc, binary_acc, sensitivity, specificity, precision, f1_score = metrics
+
+    # Print accuracy
+    print(f"Accuracy on test {method_name}: {acc*100:4.2f}%")
+
+    # Store metrics
+    for metric in metrics:
+        model_row.append(metric * 100)
 
 
 class ChannelPCBMReducer(object):
@@ -87,8 +142,17 @@ class ConceptUtils:
         self.method_name = args.algo
         self.args = args
         if args.algo == "ice":
-            self.title = self.method_name.upper() + "_HAM_{}_ncomp{}_seed{}_{}".format(
-                args.model, args.no_concepts, args.seed, args.reducer
+            self.title = (
+                self.method_name.upper()
+                + "_HAM_{}_ncomp{}_seed{}_{}_{}_clf{}_{}".format(
+                    args.model,
+                    args.no_concepts,
+                    args.seed,
+                    args.reducer,
+                    args.feature_type,
+                    args.train_clf,
+                    args.ice_clf,
+                )
             )
         elif args.algo == "pcbm":
             self.title = (
@@ -98,36 +162,29 @@ class ConceptUtils:
                 )
             )
         self.concept_names = concept_names
-        if args.example:
-            self.title = (
-                "A_"
-                + self.method_name.upper()
-                + "_HAM_{}_ncomp{}_seed{}".format(
-                    args.model, args.no_concepts, args.seed
-                )
-            )
-
-        self.EXP_SAVE = "{}_Exp_{}_ncomp{}_seed{}_{}_{}.sav".format(
+        self.EXP_SAVE = "{}_Exp_{}_ncomp{}_seed{}_{}_{}_clf{}_{}.sav".format(
             self.args.algo.upper(),
             self.args.model,
             self.args.no_concepts,
             self.args.seed,
+            self.args.reducer,
             self.args.feature_type,
-            self.args.clf,
+            self.args.train_clf,
+            self.args.ice_clf,
         )
 
-        self.CONCEPT_SAVE = "{}_concept_{}_ncomp{}_seed{}_{}_{}.sav".format(
+        self.CONCEPT_SAVE = "{}_concept_{}_ncomp{}_seed{}_{}_{}_clf{}_{}.sav".format(
             self.args.algo.upper(),
             self.args.model,
             self.args.no_concepts,
             self.args.seed,
+            self.args.reducer,
             self.args.feature_type,
-            self.args.clf,
+            self.args.train_clf,
+            self.args.ice_clf,
         )
 
-    def get_ice_model(
-        self, backbone_model, balanced_train_dl_per_class, original_train_dl_per_class
-    ):
+    def get_ice_model(self, backbone_model, processed_data):
         print("Running the concept model...")
         LAYER_NAME = params.ICE_CONCEPT_LAYER[self.args.model]
 
@@ -156,18 +213,17 @@ class ConceptUtils:
             n_components=self.args.no_concepts,
             reducer_type=self.args.reducer,
         )
-
         if self.args.retrain_concept:
             print("Retrain the concept model...")
             # train reducer based on target classes
-            Exp.train_model(ice_model, balanced_train_dl_per_class)
+            Exp.train_model(ice_model, processed_data)
             if self.args.example or self.args.save_for_app:
                 # generate features
                 Exp.generate_features(
-                    ice_model, original_train_dl_per_class, self.args.threshold
+                    ice_model, processed_data.original_per_class, self.args.threshold
                 )
                 # generate global explanations
-                # Exp.global_explanations()
+                Exp.global_explanations()
                 # save the explainer, use load to load it with the same title
                 Exp.save()
             if self.args.save_model:
@@ -291,7 +347,7 @@ class ConceptUtils:
                     threshold=self.args.threshold,
                 )
                 # generate global explanations
-                # Exp.global_explanations(concept_names=self.concept_names)
+                Exp.global_explanations(concept_names=self.concept_names)
                 Exp.save()
             if self.args.save_model:
                 Exp.save()
@@ -348,7 +404,6 @@ class ConceptUtils:
                     display_value=False,
                     with_total=False,
                     concept_names=self.concept_names,
-                    remove_features=self.args.remove_concepts,
                 )
             else:
                 concept_contributions, similarities = Exp.local_explanations(
@@ -357,7 +412,6 @@ class ConceptUtils:
                     instance_name=instance_name,
                     plot_img=False,
                     concept_names=self.concept_names,
-                    remove_features=self.args.remove_concepts,
                 )
             num_features = len(similarities)
             for cls in concept_contributions:
@@ -379,20 +433,63 @@ class ConceptUtils:
         data_similarities = pd.DataFrame.from_dict(data_similarities)
         return data_concepts, data_similarities
 
-    def concept_eval_runner(
-        self, X_test, y_test, X_test_paths, Exp, concept_model, model_row
-    ):
-        test_concepts, _ = self.format_concept_data(
-            X=X_test,
-            y=y_test,
-            X_paths=X_test_paths,
-            Exp=Exp,
-            concept_model=concept_model,
-        )
+    def concept_eval_runner(self, processed_data, Exp, concept_model, model_row):
+        if Exp.clf_y_preds is None:
+            test_concepts, _ = self.format_concept_data(
+                X=processed_data.X_test,
+                y=processed_data.y_test,
+                X_paths=processed_data.X_test_path,
+                Exp=Exp,
+                concept_model=concept_model,
+            )
+            self.evaluate_concept_model(
+                test_concepts=test_concepts,
+                ty=processed_data.y_test,
+                model_row=model_row,
+            )
+        else:
+            print_results(
+                method_name=self.method_name,
+                y_true=processed_data.y_test.tolist(),
+                y_pred=Exp.clf_y_preds,
+                model_row=model_row,
+                args=self.args,
+            )
 
-        self.evaluate_concept_model(
-            test_concepts=test_concepts, ty=y_test, model_row=model_row
-        )
+
+def woe_input_image(x, concept_model, Exp, feature_type, layer_name):
+    """Process input image for WOE analysis.
+
+    Args:
+        x: Input image or image path
+        concept_model: The concept model to extract features
+        Exp: The explainer object
+        feature_type: Type of feature extraction ('mean' or 'max')
+        layer_name: Name of the layer to extract features from
+
+    Returns:
+        Tuple of (original_x, h, x_feature) where:
+            - original_x: Original input image
+            - h: Feature map from the concept model
+            - x_feature: Processed feature vector
+    """
+    # If x is an image path
+    if (isinstance(x, str) or isinstance(x, PosixPath)) and os.path.exists(x):
+        img = Image.open(x).convert("RGB")
+        x = data_utils.NORMALIZED_NO_AUGMENTED_TRANS(img).numpy()
+    original_x = x.copy()
+    if Exp is None:
+        x = concept_model.get_feature(x, layer_name=layer_name)
+    else:
+        x = Exp.reducer.transform(concept_model.get_feature(x, layer_name=layer_name))
+    h = x[0]
+    if feature_type == "mean":
+        x_feature = x.mean(axis=(1, 2))
+    else:
+        x_feature = x.max(axis=(1, 2))
+    x_feature = np.squeeze(x_feature)
+    x_feature = torch.tensor(x_feature).to(device=params.DEVICE)
+    return original_x, h, x_feature
 
 
 class WoeUtils:
@@ -406,7 +503,7 @@ class WoeUtils:
         args,
     ):
         self.method_name = args.algo
-        if Exp is None:
+        if Exp is None or Exp.reducer is None:
             X_reducer = concept_model.get_feature(X, layer_name=layer_name)
         else:
             X_reducer = Exp.reducer.transform(
@@ -419,8 +516,12 @@ class WoeUtils:
 
         self.X = X_reducer
         self.y = y
-        self.classifier_model = classifiers.factory(model_type=args.clf)
+        if args.woe_clf == "original":
+            self.classifier_model = classifiers.factory(model_type="gnb")
+        else:
+            self.classifier_model = classifiers.factory(model_type=args.woe_clf)
         self.classifier_model.fit(self.X, self.y)
+        total_woe_correction = True
         self.Exp = Exp
         self.concept_model = concept_model
         self.layer_name = layer_name
@@ -431,26 +532,19 @@ class WoeUtils:
         FEATURE_IDX = list(range(self.args.no_concepts))
         FEATURE_NAMES = ["Feature " + str(nc) for nc in FEATURE_IDX]
         INDEPENDENT = False
-        if INDEPENDENT:
-            cond_type = "nb"
-        else:
-            cond_type = "full"
 
-        woe_model = WoEImageGaussian(
-            self.method_name,
-            self.classifier_model,
-            self.X,
-            self.y,
-            self.Exp,
-            self.concept_model,
-            self.args,
-            self.layer_name,
+        woe_model = WoEGaussian(
+            classifier_model=self.classifier_model,
+            X=self.X,
+            y=self.y,
+            no_features=args.no_concepts,
+            woe_clf=args.woe_clf,
             classes=params.TARGET_CLASSES,
-            cond_type=cond_type,
+            is_independent=INDEPENDENT,
         )
         self.woeexplainer = WoEExplainer(
             woe_model,
-            total_woe_correction=True,
+            total_woe_correction=total_woe_correction,
             classes=params.CLASSES_NAMES,
             features=FEATURE_NAMES,
             featgroup_idxs=FEATGROUP_IDXS,
@@ -458,31 +552,27 @@ class WoeUtils:
         )
 
         if self.args.save_for_app:
-            WOE_EXPLAINER = "{}_woeexplainer_{}_ncomp{}_seed{}_{}_{}.sav".format(
+            WOE_EXPLAINER = "{}_woeexplainer_{}_ncomp{}_seed{}_{}_{}_{}.sav".format(
                 self.args.algo.upper(),
                 self.args.model,
                 self.args.no_concepts,
                 self.args.seed,
+                self.args.reducer,
                 self.args.feature_type,
-                self.args.clf,
+                self.args.woe_clf,
             )
             print("Saving woe model...")
             torch.save(self.woeexplainer, params.MODEL_PATH / WOE_EXPLAINER)
 
     def woe_input_image(self, x):
-        if self.Exp is None:
-            x = self.concept_model.get_feature(x, layer_name=self.layer_name)
-        else:
-            x = self.Exp.reducer.transform(
-                self.concept_model.get_feature(x, layer_name=self.layer_name)
-            )
-        if self.args.feature_type == "mean":
-            x = x.mean(axis=(1, 2))
-        else:
-            x = x.max(axis=(1, 2))
-        x = np.squeeze(x)
-        x = torch.tensor(x).to(device=params.DEVICE)
-        return x
+        """Process input image for WOE analysis using class attributes."""
+        return woe_input_image(
+            x=x,
+            concept_model=self.concept_model,
+            Exp=self.Exp,
+            feature_type=self.args.feature_type,
+            layer_name=self.layer_name,
+        )
 
     def get_woe_model(
         self,
@@ -493,7 +583,7 @@ class WoeUtils:
     ):
         if self.args.example:
             for i in SELECTED_PRINT_TEST:
-                x_i = self.woe_input_image(X_test[i])
+                _, _, x_i = self.woe_input_image(X_test[i])
                 y_i = y_test[i]
                 print(
                     "Test ID: ",
@@ -523,7 +613,7 @@ class WoeUtils:
         else:
 
             def get_best_woe(x):
-                x = self.woe_input_image(x)
+                _, _, x = self.woe_input_image(x)
                 total_woes = []
                 post_log_odds = []
                 for y_pred in params.TARGET_CLASSES:

@@ -1,2 +1,7 @@
+from .woe import WoEGaussian
 from .explainers import WoEExplainer
-from .woe import WoEGaussian, WoEImageGaussian
+
+__all__ = [
+    'WoEGaussian',
+    'WoEExplainer',
+]

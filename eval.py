@@ -41,15 +41,19 @@ MODELS = [
 ]
 CONCEPTS1 = list(np.arange(4, 13))
 CONCEPTS2 = list(np.arange(5, 45, 5))
-ALL_CONCEPTS = list(np.arange(4, 13)) + list(np.arange(15, 85, 5))
+ALL_CONCEPTS = list(np.arange(4, 13)) + list(np.arange(15, 45, 5))
 
 LRS = [0.01]
 NSAMPLES = [50]
 PCBM_CLFS = ["sgd", "ridge"]
-CLFS = ["gnb"]
+
 FEATURE_TYPES = ["mean"]
+IS_TRAIN_CLFS = [False, True]
+ICE_CLFS = ["ridge", "gnb", "Not-Applicable"]
 REDUCERS = ["NMF", "PCA"]
+WOE_CLFS = ["original"]
 SELECTED_MEASURES = ["acc", "sensitivity", "precision", "f1_score"]
+
 
 cnn_df = pd.read_csv(params.BACKBONE_TRAIN_FILE)
 cnn_df["model"].replace("resnext50", "resneXt50", inplace=True)
@@ -88,14 +92,14 @@ print(
 
 ice_df = pd.read_csv(params.ICE_RESULT_FILE)
 ice_woe_df = pd.read_csv(params.ICE_WOE_RESULT_FILE)
-ice_clfs_df = pd.read_csv(params.ICE_CLFS_FILE)
 pcbm_7pt_df = pd.read_csv(params.PCBM_CONCEPT_7PT_FILE)
 pcbm_df = pd.read_csv(params.PCBM_RESULT_FILE)
 pcbm_woe_df = pd.read_csv(params.PCBM_WOE_RESULT_FILE)
 
 ice_df["model"].replace("resnext50", "resneXt50", inplace=True)
+ice_df["ice_clf"].replace(float("nan"), "Not-Applicable", inplace=True)
 ice_woe_df["model"].replace("resnext50", "resneXt50", inplace=True)
-ice_clfs_df["model"].replace("resnext50", "resneXt50", inplace=True)
+ice_woe_df["ice_clf"].replace(float("nan"), "Not-Applicable", inplace=True)
 pcbm_7pt_df["model"].replace("resnext50", "resneXt50", inplace=True)
 pcbm_df["model"].replace("resnext50", "resneXt50", inplace=True)
 pcbm_woe_df["model"].replace("resnext50", "resneXt50", inplace=True)
@@ -103,99 +107,94 @@ pcbm_woe_df["model"].replace("resnext50", "resneXt50", inplace=True)
 
 # Handle ICE
 ice_concept_stats = defaultdict(list)
+iceclf_idx = 0
 for model in MODELS:
     for concept in ALL_CONCEPTS:
         for feature_type in FEATURE_TYPES:
-            for clf in CLFS:
-                for reducer in REDUCERS:
-                    concept_df = ice_df[
-                        (ice_df["model"] == model)
-                        & (ice_df["concept"] == concept)
-                        & (ice_df["reducer"] == reducer)
-                    ]
-                    concept_clf_df = ice_clfs_df[
-                        (ice_clfs_df["model"] == model)
-                        & (ice_clfs_df["concept"] == concept)
-                        & (ice_clfs_df["feature_type"] == feature_type)
-                        & (ice_clfs_df["clf"] == clf)
-                        & (ice_clfs_df["reducer"] == reducer)
-                    ]
-                    woe_df = ice_woe_df[
-                        (ice_woe_df["model"] == model)
-                        & (ice_woe_df["concept"] == concept)
-                        & (ice_woe_df["feature_type"] == feature_type)
-                        & (ice_woe_df["clf"] == clf)
-                        & (ice_woe_df["reducer"] == reducer)
-                    ]
-                    acc_count = max(
-                        concept_df.shape[0], concept_clf_df.shape[0], woe_df.shape[0]
-                    )
-                    ice_concept_stats["backbone_model"].append(model)
-                    ice_concept_stats["clf"].append(clf)
-                    ice_concept_stats["reducer"].append(reducer)
-                    ice_concept_stats["ICE no concepts"].append(concept)
-                    ice_concept_stats["ice count"].append(acc_count)
-                    if (
-                        concept < 10
-                        and model == "resneXt50"
-                        and clf == "gnb"
-                        and reducer == "NMF"
-                    ):
-                        print(model, concept, clf, reducer)
-                        print(
-                            "ice vs. woe",
-                            ttest_ind(
-                                concept_df["ice_f1_score"], woe_df["woe_f1_score"]
-                            ),
-                            cohend(concept_df["ice_f1_score"], woe_df["woe_f1_score"]),
-                        )
-                        print(
-                            "original vs. woe",
-                            ttest_ind(
-                                cnn_df[cnn_df["model"] == model]["test_acc"],
-                                woe_df["woe_f1_score"],
-                            ),
-                            cohend(
-                                cnn_df[cnn_df["model"] == model]["test_acc"],
-                                woe_df["woe_f1_score"],
-                            ),
-                        )
-                        print(
-                            "original vs. ice",
-                            ttest_ind(
-                                concept_df["ice_f1_score"],
-                                cnn_df[cnn_df["model"] == model]["test_acc"],
-                            ),
-                            cohend(
-                                concept_df["ice_f1_score"],
-                                cnn_df[cnn_df["model"] == model]["test_acc"],
-                            ),
-                        )
-                    for measure in SELECTED_MEASURES:
-                        get_mean_std_measure(
-                            method="test",
-                            measure_name=measure,
-                            df=cnn_df[cnn_df["model"] == model],
-                            df_stats=ice_concept_stats,
-                        )
-                        get_mean_std_measure(
-                            method="ice",
-                            measure_name=measure,
-                            df=concept_df,
-                            df_stats=ice_concept_stats,
-                        )
-                        get_mean_std_measure(
-                            method="ice_clf",
-                            measure_name=measure,
-                            df=concept_clf_df,
-                            df_stats=ice_concept_stats,
-                        )
-                        get_mean_std_measure(
-                            method="woe",
-                            measure_name=measure,
-                            df=woe_df,
-                            df_stats=ice_concept_stats,
-                        )
+            for reducer in REDUCERS:
+                for is_train_clf in IS_TRAIN_CLFS:
+                    for ice_clf in ICE_CLFS:
+                        concept_df = ice_df[
+                            (ice_df["model"] == model)
+                            & (ice_df["concept"] == concept)
+                            & (ice_df["feature_type"] == feature_type)
+                            & (ice_df["reducer"] == reducer)
+                            & (ice_df["is_train_clf"] == is_train_clf)
+                            & (ice_df["ice_clf"] == ice_clf)
+                        ]
+                        if concept_df.shape[0] == 0:
+                            continue
+                        woe_df = ice_woe_df[
+                            (ice_woe_df["model"] == model)
+                            & (ice_woe_df["concept"] == concept)
+                            & (ice_woe_df["feature_type"] == feature_type)
+                            & (ice_woe_df["reducer"] == reducer)
+                            & (ice_woe_df["woe_clf"] == WOE_CLFS[0])
+                        ]
+                        acc_count = max(concept_df.shape[0], woe_df.shape[0])
+                        ice_concept_stats["backbone_model"].append(model)
+                        ice_concept_stats["is_train_clf"].append(is_train_clf)
+                        ice_concept_stats["ice_clf"].append(ice_clf)
+                        ice_concept_stats["reducer"].append(reducer)
+                        ice_concept_stats["ICE no concepts"].append(concept)
+                        ice_concept_stats["ice count"].append(acc_count)
+                        if (
+                            concept < 10
+                            and model == "resneXt50"
+                            and not is_train_clf
+                            and reducer == "NMF"
+                        ):
+                            print(model, concept, is_train_clf, reducer)
+                            print(
+                                "ice vs. woe",
+                                ttest_ind(
+                                    concept_df["ice_f1_score"], woe_df["woe_f1_score"]
+                                ),
+                                cohend(
+                                    concept_df["ice_f1_score"], woe_df["woe_f1_score"]
+                                ),
+                            )
+                            print(
+                                "original vs. woe",
+                                ttest_ind(
+                                    cnn_df[cnn_df["model"] == model]["test_f1_score"],
+                                    woe_df["woe_f1_score"],
+                                ),
+                                cohend(
+                                    cnn_df[cnn_df["model"] == model]["test_f1_score"],
+                                    woe_df["woe_f1_score"],
+                                ),
+                            )
+                            print(
+                                "original vs. ice",
+                                ttest_ind(
+                                    concept_df["ice_f1_score"],
+                                    cnn_df[cnn_df["model"] == model]["test_f1_score"],
+                                ),
+                                cohend(
+                                    concept_df["ice_f1_score"],
+                                    cnn_df[cnn_df["model"] == model]["test_f1_score"],
+                                ),
+                            )
+                        for measure in SELECTED_MEASURES:
+                            get_mean_std_measure(
+                                method="test",
+                                measure_name=measure,
+                                df=cnn_df[cnn_df["model"] == model],
+                                df_stats=ice_concept_stats,
+                            )
+                            get_mean_std_measure(
+                                method="ice",
+                                measure_name=measure,
+                                df=concept_df,
+                                df_stats=ice_concept_stats,
+                            )
+                            get_mean_std_measure(
+                                method="woe",
+                                measure_name=measure,
+                                df=woe_df,
+                                df_stats=ice_concept_stats,
+                            )
 
 # Handle PCBM
 pcbm_7pt_stats = defaultdict(list)
@@ -311,21 +310,28 @@ pcbm_stats_df["learning rate"] = pcbm_stats_df["learning rate"].astype(float)
 pcbm_stats_df.to_csv(params.STATS_PCBM_FILE)
 
 # PRINT TO LATEX
-SUBMODELS_ICE = ["test", "ice", "ice_clf", "woe"]
-SUBMODELS_PCBM = ["test", "pcbm", "woe"]
+SUBMODELS_ICE = ["test", "ice", "woe"]
+SUBMODELS_PCBM = ["pcbm", "woe"]
 latex_df = pd.DataFrame(columns=["Model", "Precision", "Recall", "F1-Score"])
 for model in MODELS:
     ridx = 0
     selected_ice_df = ice_stats_df[
         (ice_stats_df["backbone_model"] == model)
         & (ice_stats_df["ICE no concepts"] == 8)
-        & (ice_stats_df["clf"] == "gnb")
+        & (ice_stats_df["is_train_clf"] == False)
         & (ice_stats_df["reducer"] == "NMF")
+    ]
+    selected_ridge_ice_df = ice_stats_df[
+        (ice_stats_df["backbone_model"] == model)
+        & (ice_stats_df["ICE no concepts"] == 8)
+        & (ice_stats_df["reducer"] == "NMF")
+        & (ice_stats_df["is_train_clf"] == True)
+        & (ice_stats_df["ice_clf"] == "ridge")
     ]
     selected_ice_df_5 = ice_stats_df[
         (ice_stats_df["backbone_model"] == model)
         & (ice_stats_df["ICE no concepts"] == 5)
-        & (ice_stats_df["clf"] == "gnb")
+        & (ice_stats_df["is_train_clf"] == False)
         & (ice_stats_df["reducer"] == "NMF")
     ]
     selected_pcbm_df = pcbm_stats_df[
@@ -343,6 +349,14 @@ for model in MODELS:
             ]
         ].values.flatten().tolist()
     ridx = ridx + len(SUBMODELS_ICE)
+    latex_df.loc[ridx] = [model + " " + "ridge ice(8)"] + selected_ridge_ice_df[
+        [
+            "ice_precision",
+            "ice_sensitivity",
+            "ice_f1_score",
+        ]
+    ].values.flatten().tolist()
+    ridx = ridx + 1
     for i, submodel in enumerate(SUBMODELS_PCBM):
         latex_df.loc[ridx + i] = [model + " " + submodel] + selected_pcbm_df[
             [
@@ -363,6 +377,98 @@ for model in MODELS:
 
     print(latex_df.to_latex(index=False, bold_rows=True))
 
+print("Ablation studies: ICE(12) ridge vs. PCBM")
+latex_df = pd.DataFrame(columns=["Model", "Precision", "Recall", "F1-Score"])
+for model in MODELS:
+    ridx = 0
+    selected_ridge_ice_df = ice_stats_df[
+        (ice_stats_df["backbone_model"] == model)
+        & (ice_stats_df["ICE no concepts"] == 12)
+        & (ice_stats_df["reducer"] == "NMF")
+        & (ice_stats_df["is_train_clf"] == True)
+        & (ice_stats_df["ice_clf"] == "ridge")
+    ]
+    selected_pcbm_df = pcbm_stats_df[
+        (pcbm_stats_df["backbone_model"] == model)
+        & (pcbm_stats_df["pcbm_classifier"] == "ridge")
+        & (pcbm_stats_df["learning rate"] == 0.01)
+        & (pcbm_stats_df["7pt no training samples"] == 50)
+    ]
+    latex_df.loc[ridx] = [model + " " + "ICE(12)+Ridge"] + selected_ridge_ice_df[
+        [
+            "ice_precision",
+            "ice_sensitivity",
+            "ice_f1_score",
+        ]
+    ].values.flatten().tolist()
+    ridx = ridx + 1
+    latex_df.loc[ridx + i] = [model + " " + "PCBM"] + selected_pcbm_df[
+        [
+            "pcbm" + "_precision",
+            "pcbm" + "_sensitivity",
+            "pcbm" + "_f1_score",
+        ]
+    ].values.flatten().tolist()
+    print(latex_df.to_latex(index=False, bold_rows=True))
+
+print("Ablation studies: different classification layers of ICE")
+latex_df = pd.DataFrame(columns=["Model", "Precision", "Recall", "F1-Score"])
+for model in MODELS:
+    ridx = 0
+    selected_ice_df = ice_stats_df[
+        (ice_stats_df["backbone_model"] == model)
+        & (ice_stats_df["ICE no concepts"] == 7)
+        & (ice_stats_df["is_train_clf"] == False)
+        & (ice_stats_df["reducer"] == "NMF")
+    ]
+    selected_ice_df_ridge = ice_stats_df[
+        (ice_stats_df["backbone_model"] == model)
+        & (ice_stats_df["ICE no concepts"] == 7)
+        & (ice_stats_df["reducer"] == "NMF")
+        & (ice_stats_df["is_train_clf"] == True)
+        & (ice_stats_df["ice_clf"] == "ridge")
+    ]
+    selected_ice_df_gnb = ice_stats_df[
+        (ice_stats_df["backbone_model"] == model)
+        & (ice_stats_df["ICE no concepts"] == 7)
+        & (ice_stats_df["reducer"] == "NMF")
+        & (ice_stats_df["is_train_clf"] == True)
+        & (ice_stats_df["ice_clf"] == "gnb")
+    ]
+    latex_df.loc[ridx] = [model + " " + "ICE(7)"] + selected_ice_df[
+        [
+            "ice_precision",
+            "ice_sensitivity",
+            "ice_f1_score",
+        ]
+    ].values.flatten().tolist()
+    ridx = ridx + 1
+    latex_df.loc[ridx] = [model + " " + "ICE(7)+Ridge"] + selected_ice_df_ridge[
+        [
+            "ice_precision",
+            "ice_sensitivity",
+            "ice_f1_score",
+        ]
+    ].values.flatten().tolist()
+    ridx = ridx + 1
+    latex_df.loc[ridx] = [model + " " + "ICE(7)+GNB"] + selected_ice_df_gnb[
+        [
+            "ice_precision",
+            "ice_sensitivity",
+            "ice_f1_score",
+        ]
+    ].values.flatten().tolist()
+    ridx = ridx + 1
+    latex_df.loc[ridx] = [model + " " + "ICE(7)+WoE"] + selected_ice_df[
+        [
+            "woe_precision",
+            "woe_sensitivity",
+            "woe_f1_score",
+        ]
+    ].values.flatten().tolist()
+
+    print(latex_df.to_latex(index=False, bold_rows=True))
+
 LINESTYLES = ["solid", "dotted", "dashdot", "dashed", ("loosely dotted", (0, (1, 10)))]
 ice_groups = ice_stats_df.groupby("backbone_model")[
     [
@@ -371,11 +477,9 @@ ice_groups = ice_stats_df.groupby("backbone_model")[
         "test_f1_score_std",
         "ice_f1_score_mean",
         "ice_f1_score_std",
-        "ice_clf_f1_score_mean",
-        "ice_clf_f1_score_std",
         "woe_f1_score_mean",
         "woe_f1_score_std",
-        "clf",
+        "is_train_clf",
         "reducer",
     ]
 ]
@@ -464,7 +568,7 @@ def plot_reducer(
 for m in ["resneXt50"]:
     if m in ice_groups.groups.keys():
         ice_df = ice_groups.get_group(m)
-        ice_df = ice_df[ice_df["clf"] == "gnb"]
+        ice_df = ice_df[ice_df["is_train_clf"] == False]
         plot_reducer(
             "ice",
             ice_df,

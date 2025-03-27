@@ -9,7 +9,11 @@ attrdict3
 pillow
 gradio
 pydotplus
-pygraphviz
 colored
 scikit-image
 torchinfo
+torch
+torchvision
+imblearn
+# graphviz
+# pygraphviz

@@ -60,11 +60,23 @@ def set_arguments():
         help="select the image feature by getting mean or max",
         choices=["mean", "max"],
     )
-    parser.add_argument("--reducer", type=str, default="NMF", help="select the reducer")
     parser.add_argument(
-        "--clf",
+        "--reducer",
         type=str,
-        default="gnb",
+        default="NMF",
+        help="select the reducer - choose NA if not use a reducer",
+        choices=["NMF", "PCA", "NA"],
+    )
+    parser.add_argument(
+        "--ice-clf",
+        type=str,
+        default="NA",
+        help="select the classifier for the ice model",
+    )
+    parser.add_argument(
+        "--woe-clf",
+        type=str,
+        default="NA",
         help="select the classifier for the woe model",
     )
 
@@ -152,5 +164,17 @@ def set_arguments():
         type=bool,
         default=False,
         help="save models for the app",
+    )
+    parser.add_argument(
+        "--train-clf",
+        type=bool,
+        default=False,
+        help="train concepts on a classifier",
+    )
+    parser.add_argument(
+        "--print-instances",
+        type=bool,
+        default=False,
+        help="print instances to select in select_instances.py",
     )
     return parser.parse_args()

@@ -35,16 +35,8 @@ if __name__ == "__main__":
         args.no_concepts = len(all_concept_names)
         concept_utils = utils.ConceptUtils(args=args, concept_names=all_concept_names)
 
-    print("TIME NOW: ", now)
-    print("EXP METHOD: ", args.algo)
-    print("CLASSES NAMES:{}".format(params.CLASSES_NAMES))
-    print("NO CONCEPTS:{}".format(args.no_concepts))
-    print("CNN MODEL: {}".format(args.model))
-    print("SEED: ", args.seed)
-    print("USE CUTMIX or MIXUP: ", params.USE_MIXUP)
-    print("BATCH SIZE: ", params.BATCH_SIZE)
-    print("NUM WORKERS: ", params.NUM_WORKERS)
-    print("CONCEPT LAYER NAME: {}".format(LAYER_NAME))
+    if args.train_clf:
+        print("ICE CLF: {}".format(args.ice_clf))
     if args.algo == "ice":
         print("REDUCER: {}".format(args.reducer))
         model_row = [now, args.model, args.no_concepts, args.seed]
@@ -58,6 +50,8 @@ if __name__ == "__main__":
             ]
         )
         backbone_model.eval()
+        if args.reducer == "NA":
+            args.no_concepts = backbone_model.fc.in_features
     elif args.algo == "pcbm":
         model_row = [
             now,
@@ -77,6 +71,17 @@ if __name__ == "__main__":
         backbone_model = backbone_model.to(params.DEVICE)
         backbone_model.eval()
 
+    print("TIME NOW: ", now)
+    print("EXP METHOD: ", args.algo)
+    print("CLASSES NAMES:{}".format(params.CLASSES_NAMES))
+    print("NO CONCEPTS:{}".format(args.no_concepts))
+    print("CNN MODEL: {}".format(args.model))
+    print("SEED: ", args.seed)
+    print("USE CUTMIX or MIXUP: ", params.USE_MIXUP)
+    print("BATCH SIZE: ", params.BATCH_SIZE)
+    print("NUM WORKERS: ", params.NUM_WORKERS)
+    print("CONCEPT LAYER NAME: {}".format(LAYER_NAME))
+    print("IS TRAIN CLF: {}".format(args.train_clf))
     processed_data = initdata.data_starter(args)
 
     if args.no_concepts == 2048 and args.run_mode == "woe":
@@ -92,9 +97,7 @@ if __name__ == "__main__":
     else:
         if args.algo == "ice":
             Exp, concept_model = concept_utils.get_ice_model(
-                backbone_model=backbone_model,
-                balanced_train_dl_per_class=processed_data.balanced_per_class,
-                original_train_dl_per_class=processed_data.original_per_class,
+                backbone_model=backbone_model, processed_data=processed_data
             )
         else:
             Exp, concept_model = concept_utils.get_pcbm_model(
@@ -110,9 +113,7 @@ if __name__ == "__main__":
 
     if args.run_mode == "concept":
         concept_utils.concept_eval_runner(
-            processed_data.X_test,
-            processed_data.y_test,
-            processed_data.X_test_path,
+            processed_data,
             Exp,
             concept_model,
             model_row,
@@ -144,14 +145,17 @@ if __name__ == "__main__":
     model_row.append(duration)
     print("Time taken: {}(s), {}(m)".format(duration, duration / 60))
     print("-" * 50)
-    if args.run_mode == "woe":
-        model_row.append(args.feature_type)
-        model_row.append(args.clf)
+    model_row.append(args.feature_type)
 
     if args.algo == "ice":
         model_row.append(args.reducer)
+        model_row.append(args.train_clf)
+        model_row.append(args.ice_clf)
     else:
         model_row.append(args.pcbm_classifier)
+
+    if args.run_mode == "woe":
+        model_row.append(args.woe_clf)
 
     if not args.example and not args.debug:
         with open(FILE_CONCEPT, "a", newline="") as f:

@@ -29,6 +29,17 @@ class ImageUtils:
         self.std = std
         self.mean = mean
         self.mode = mode
+        # 8 directions: horizontally, vertically and diagnonally
+        self.directions = [
+            (-1, 0),
+            (1, 0),
+            (0, -1),
+            (0, 1),
+            (-1, -1),
+            (-1, 1),
+            (1, -1),
+            (1, 1),
+        ]
 
     def deprocessing(self, x):
         x = np.array(x)
@@ -160,6 +171,52 @@ class ImageUtils:
         h = h / (h.max() + EPSILON)
 
         return x, h
+
+    def DFS(self, grid, rows, cols, cr, cc, visited):
+        """
+        cr: current row
+        cc: current column
+        """
+        # Stack for DFS
+        stack = [(cr, cc)]
+        island = []
+
+        while stack:
+            x, y = stack.pop()
+
+            if visited[x][y]:
+                continue
+
+            visited[x][y] = True
+            island.append((x, y))
+            for d in self.directions:
+                nr = x + d[0]
+                nc = y + d[1]
+                if 0 <= nr < rows and 0 <= nc < cols:
+                    if not visited[nr][nc] and grid[nr][nc] > 0:
+                        stack.append((nr, nc))
+
+        return island
+
+    def find_max_area_contour(self, grid):
+        rows = len(grid)
+        cols = len(grid[0])
+        visited = [[False for _ in range(cols)] for _ in range(rows)]
+        max_area = 0
+        max_island = []
+        for r in range(rows):
+            for c in range(cols):
+                if not visited[r][c] and grid[r][c] > 0:
+                    island = self.DFS(grid, rows, cols, r, c, visited)
+                    if len(island) > max_area:
+                        max_island = island
+                        max_area = len(island)
+        result = np.zeros_like(grid, dtype=int)
+        
+        # Set 1 for elements in the largest island
+        for x, y in max_island:
+            result[x, y] = 1
+        return result
 
     def contour_img(self, x, h, dpi=100):
         dpi = float(dpi)

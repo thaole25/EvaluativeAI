@@ -27,6 +27,7 @@ TRAINING_LOG = params.MODEL_PATH / "training-log-{}-seed{}.csv".format(
 )
 now = datetime.datetime.now()
 print("TIME NOW: ", now)
+print("MODEL: ", args.model)
 print("NUM WORKERS: ", params.NUM_WORKERS)
 print("NUM EPOCH: ", params.NUM_EPOCH)
 print("LEARNING RATE: ", params.LEARNING_RATE)

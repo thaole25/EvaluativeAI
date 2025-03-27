@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pydotplus
+import torch
 
 from collections import defaultdict
 import time
@@ -9,7 +10,8 @@ import os
 import shutil
 
 from ice import channel_reducer
-from preprocessing import params
+from preprocessing import params, initdata
+import classifiers
 
 
 class Explainer:
@@ -21,7 +23,6 @@ class Explainer:
         class_names=None,
         utils=None,
         keep_feature_images=True,
-        useMean=True,
         reducer_type="NMF",
         n_components=10,
         featuretopk=80,
@@ -31,12 +32,9 @@ class Explainer:
         self.args = args
         self.title = title
         self.layer_name = layer_name
-
         self.class_names = class_names
         self.class_nos = len(class_names) if class_names is not None else 0
-
         self.keep_feature_images = keep_feature_images
-
         self.reducer_type = reducer_type
         self.featuretopk = featuretopk
         self.featureimgtopk = featureimgtopk  # number of images for a feature
@@ -46,6 +44,7 @@ class Explainer:
         self.reducer = None
         self.feature_distribution = None
         self.features = {}
+        self.clf_y_preds = None
 
         self.exp_location = params.EXP_PATH
         self.font = params.FONT_SIZE
@@ -65,9 +64,15 @@ class Explainer:
         with open(self.exp_location / title / (title + ".pickle"), "wb") as f:
             pickle.dump(self.__dict__, f)
 
-    def train_model(self, model, loaders):
-        self._train_reducer(model, loaders)
-        self._estimate_weight(model, loaders)
+    def train_model(self, model, processed_data):
+        if self.args.reducer == "NA":
+            self._train_concepts_on_classifier(model, processed_data)
+        else:
+            self._train_reducer(model, processed_data.balanced_per_class)
+            if self.args.train_clf:
+                self._train_concepts_on_classifier(model, processed_data)
+            else:
+                self._estimate_weight(model, processed_data.balanced_per_class)
 
     def _train_reducer(self, model, loaders):
 
@@ -167,7 +172,7 @@ class Explainer:
 
         for loader in loaders:
             X_features.append(
-                model.get_feature(loader, self.layer_name)[: params.ESTIMATE_NUM]
+                model.get_feature(loader, self.layer_name)  # [: params.ESTIMATE_NUM]
             )
         X_feature = np.concatenate(X_features)
 
@@ -193,6 +198,45 @@ class Explainer:
         print("5/5 Weight estimated.")
 
         self.test_weight = np.array(self.test_weight)
+
+    def _train_concepts_on_classifier(self, model, processed_data):
+        if self.reducer is None:
+            X_features = model.get_feature(
+                processed_data.balanced_X, layer_name=self.layer_name
+            )
+            X_test_features = model.get_feature(
+                processed_data.X_test, layer_name=self.layer_name
+            )
+        else:
+            X_features = self.reducer.transform(
+                model.get_feature(processed_data.balanced_X, layer_name=self.layer_name)
+            )
+            X_test_features = self.reducer.transform(
+                model.get_feature(processed_data.X_test, layer_name=self.layer_name)
+            )
+        if self.args.feature_type == "mean":
+            X_features = X_features.mean(axis=(1, 2))
+            X_test_features = X_test_features.mean(axis=(1, 2))
+        else:
+            X_features = X_features.max(axis=(1, 2))
+            X_test_features = X_test_features.max(axis=(1, 2))
+        remove_concepts = self.args.remove_concepts
+        remove_concepts = [int(feat) for feat in remove_concepts]
+        if remove_concepts:
+            X_features = np.delete(X_features, remove_concepts, axis=1)
+            X_test_features = np.delete(X_test_features, remove_concepts, axis=1)
+        classifier = classifiers.factory(model_type=self.args.ice_clf)
+        classifier.fit(X_features, processed_data.balanced_y)
+        if self.args.ice_clf in ["lda", "logistic"]:
+            self.test_weight = np.transpose(classifier.coef_)
+        elif self.args.ice_clf == "gnb":
+            self.test_weight = np.transpose(classifier.theta_)
+        elif self.args.ice_clf == "mlp":
+            self.test_weight = classifier.coefs_[0]
+        y_test_pred = classifier.predict(X_test_features)
+        y_preds = y_test_pred.tolist()
+        self.clf_y_preds = y_preds
+        return self.clf_y_preds
 
     def generate_features(self, model, loaders, threshold):
         self._visualise_features(model, loaders)
@@ -227,8 +271,8 @@ class Explainer:
             return x, h
 
     def _visualise_features(self, model, loaders, featureIdx=None, inter_dict=None):
+        path_lesion_dict = initdata.get_lesion_by_path()
         featuretopk = min(self.featuretopk, self.n_components)
-
         imgTopk = self.featureimgtopk
         if featureIdx is None:
             featureIdx = []
@@ -262,9 +306,21 @@ class Explainer:
         for i, loader in enumerate(loaders):
 
             for X in loader:
-                X = X[0]
+                X_data, X_paths = X[0], X[2]
+
+                X_unique = []  # select images not from the same lesion
+                lesion_used = set()
+                for ix, x in enumerate(X_data):
+                    base_name = os.path.basename(X_paths[ix])
+                    image_id = os.path.splitext(base_name)[0]
+                    lesion = path_lesion_dict[image_id]
+                    if lesion not in lesion_used:
+                        X_unique.append(x)
+                        lesion_used.add(lesion)
+
+                X_unique = torch.stack(X_unique)
                 featureMaps = self.reducer.transform(
-                    model.get_feature(X, self.layer_name)
+                    model.get_feature(X_unique, self.layer_name)
                 )
 
                 X_feature = self._feature_filter(featureMaps)
@@ -274,7 +330,7 @@ class Explainer:
                     idx = X_feature[:, No].argsort()[-imgTopk:]
 
                     nheatmap = featureMaps[idx, :, :, No]
-                    nsamples = X[idx, ...]
+                    nsamples = X_unique[idx, ...]
 
                     samples, heatmap = self._update_feature_dict(
                         samples, heatmap, nsamples, nheatmap
@@ -290,7 +346,7 @@ class Explainer:
                             inter_dict[k][No] = self._update_feature_dict(
                                 inter_dict[k][No][0],
                                 inter_dict[k][No][1],
-                                X,
+                                X_unique,
                                 featureMaps[:, :, :, No],
                                 threshold=temp_v,
                             )
@@ -350,8 +406,9 @@ class Explainer:
                     timg = timg / 255.0
                     timg = abs(timg)
                 timg = np.clip(timg, 0, 1)
+                max_h = self.utils.find_max_area_contour(h[i])
                 nimg[:, i * img_width : (i + 1) * img_height, :] = timg
-                nh[:, i * img_width : (i + 1) * img_height] = h[i]
+                nh[:, i * img_width : (i + 1) * img_height] = max_h
             fig = self.utils.contour_img(nimg, nh)
             fig.savefig(
                 feature_path / (str(idx) + ".jpg"),
@@ -469,7 +526,8 @@ class Explainer:
         x1 = self.utils.deprocessing(x1)
         x1 = x1 / x1.max()
         x1 = abs(x1)
-        fig = self.utils.contour_img(x1[0], h1[0])
+        max_h = self.utils.find_max_area_contour(h1[0])
+        fig = self.utils.contour_img(x1[0], max_h)
         fig.savefig(
             img_path,
             format="jpg",
@@ -488,9 +546,7 @@ class Explainer:
         display_value=True,
         plot_img=True,
         concept_names=None,
-        remove_features=[],
     ):
-        utils = self.utils
         font = self.font
         featuretopk = min(self.featuretopk, self.n_components)
         target_classes = list(range(self.class_nos))
@@ -505,15 +561,13 @@ class Explainer:
         concept_contributions = defaultdict(
             dict
         )  # {class_id: {feature_id: contribution_score}}
-        remove_features = [int(feat) for feat in remove_features]
+        remove_features = [int(feat) for feat in self.args.remove_concepts]
         for cidx in target_classes:
             tw = w[:, cidx]
             tw_idx = tw.argsort()[::-1][:featuretopk]
-            total = 0
             for fidx in tw_idx:
                 if fidx not in remove_features:
                     concept_contributions[cidx][fidx] = s[fidx] * tw[fidx]
-                    total += s[fidx] * tw[fidx]
 
         if not plot_img:
             return concept_contributions, s

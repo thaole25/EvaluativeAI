@@ -11,8 +11,16 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 from preprocessing import data_utils
 
 
+def get_lesion_by_path():
+    ham_df = pd.read_csv(params.DATA_PATH / "HAM10000_metadata.csv", sep=",")
+    path_lesion_dict = dict(zip(ham_df["image_id"], ham_df["lesion_id"]))
+    return path_lesion_dict
+
+
 def train_test_equal_test_split(X, y, n_per_class, random_state=None):
-    sampled = X.groupby(y, sort=False).apply(lambda frame: frame.sample(n_per_class))
+    sampled = X.groupby(y, sort=False).apply(
+        lambda frame: frame.sample(n_per_class)  # random_state=random_state
+    )
     mask = sampled.index.get_level_values(1)
 
     X_train = X.drop(mask)
