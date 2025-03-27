@@ -127,7 +127,7 @@ class WoEGaussian:
         y: Union[np.ndarray, torch.Tensor],
         no_features: int,
         woe_clf: str,
-        classes: List[str],
+        class_indices: List[str],
         is_independent: bool = False,
     ) -> None:
         """Initialize WoE Gaussian model.
@@ -138,12 +138,12 @@ class WoEGaussian:
             y: Training labels
             no_features: Number of features
             woe_clf: Type of WoE classifier
-            classes: Class names
+            class_indices: Class indices
             is_independent: Whether to use independent Gaussian model
         """
         print("Processing WOE Gaussian model...")
         self.model = classifier_model
-        self.classes = classes
+        self.class_indices = class_indices
         self.is_independent = is_independent
         self.X = X
         self.y = y
@@ -173,7 +173,7 @@ class WoEGaussian:
         self.means = []
         self.covs = []
 
-        for c in params.TARGET_CLASSES:
+        for c in self.class_indices:
             s = time.time()
             # Priors
             prior = (Y == c).sum() / len(Y)
@@ -248,7 +248,7 @@ class WoEGaussian:
             y1 = self._process_hypothesis(y1)
 
         if y2 is None and y1 is not None:
-            y2 = np.array(list(set(self.classes).difference(set(y1))))
+            y2 = np.array(list(set(self.class_indices).difference(set(y1))))
         elif y2 is not None:
             y2 = self._process_hypothesis(y2)
 

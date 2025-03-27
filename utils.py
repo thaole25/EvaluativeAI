@@ -539,7 +539,7 @@ class WoeUtils:
             y=self.y,
             no_features=args.no_concepts,
             woe_clf=args.woe_clf,
-            classes=params.TARGET_CLASSES,
+            class_indices=params.TARGET_CLASSES,
             is_independent=INDEPENDENT,
         )
         self.woeexplainer = WoEExplainer(
