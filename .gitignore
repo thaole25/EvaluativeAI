@@ -18,3 +18,5 @@ clean*
 evaluativeai_pretrained/
 local*
 cp*
+bash/
+*.out

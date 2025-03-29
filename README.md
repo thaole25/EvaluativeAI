@@ -2,13 +2,13 @@
 
 **Evaluative AI** is a tool for decision support by providing positive and negative evidence for a given hypothesis. This tool is currently used for two types of dataset (tabular vs. image) as shown below.
 
-1. Tabular dataset
+### 1. Tabular dataset
 
 <img src="img/tabular-output.png" width="400" alt="">
 
 **Figure 1: Example of tabular data analysis showing positive and negative evidence for hypothesis low**. [Paper: A Hypothesis-Driven Approach to Decision Support Using Evidence](https://arxiv.org/abs/2402.01292)
 
-2. Image dataset
+### 2. Image dataset
 
 <img src="img/image-output.png" alt="">
 
@@ -78,10 +78,10 @@ EvaluativeAI
 │   ├── initdata.py
 │   └── params.py
 ├── reproducibility
-│   ├── output
 │   └── script
 │       ├── pretrained.sh
 │       └── scratch.sh
+├── results
 ├── requirements.txt
 ├── test_data
 ├── train_cnn.py
@@ -106,7 +106,7 @@ Please put the datasets in the right folder followed the code structure above.
 ## Usage
 
 ### Reproducibility
-To reproduce the results in the paper [Visual Evaluative AI: A Hypothesis-Driven Tool with Concept-Based Explanations and Weight of Evidence](https://arxiv.org/abs/2407.04710), please either use pre-trained models or train from scratch as described below. Then, run `python eval.py` to see the results.
+To reproduce the results in the paper [Visual Evaluative AI: A Hypothesis-Driven Tool with Concept-Based Explanations and Weight of Evidence](https://arxiv.org/abs/2407.04710), please either use pre-trained models or train from scratch as described below. Then, run `python eval.py > results/computational.txt` to see the results.
 
 #### Use pre-trained models
 - Available pre-trained models [Download](https://doi.org/10.5281/zenodo.11205936)

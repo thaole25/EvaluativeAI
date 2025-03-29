@@ -56,7 +56,7 @@ SELECTED_MEASURES = ["acc", "sensitivity", "precision", "f1_score"]
 
 
 cnn_df = pd.read_csv(params.BACKBONE_TRAIN_FILE)
-cnn_df["model"].replace("resnext50", "resneXt50", inplace=True)
+cnn_df.replace({"model": {"resnext50": "resneXt50"}}, inplace=True)
 cnn_stats = defaultdict(list)
 
 for model in MODELS:
@@ -96,14 +96,17 @@ pcbm_7pt_df = pd.read_csv(params.PCBM_CONCEPT_7PT_FILE)
 pcbm_df = pd.read_csv(params.PCBM_RESULT_FILE)
 pcbm_woe_df = pd.read_csv(params.PCBM_WOE_RESULT_FILE)
 
-ice_df["model"].replace("resnext50", "resneXt50", inplace=True)
-ice_df["ice_clf"].replace(float("nan"), "Not-Applicable", inplace=True)
-ice_woe_df["model"].replace("resnext50", "resneXt50", inplace=True)
-ice_woe_df["ice_clf"].replace(float("nan"), "Not-Applicable", inplace=True)
-pcbm_7pt_df["model"].replace("resnext50", "resneXt50", inplace=True)
-pcbm_df["model"].replace("resnext50", "resneXt50", inplace=True)
-pcbm_woe_df["model"].replace("resnext50", "resneXt50", inplace=True)
-
+ice_df.replace(
+    {"model": {"resnext50": "resneXt50"}, "ice_clf": {float("nan"): "Not-Applicable"}},
+    inplace=True,
+)
+ice_woe_df.replace(
+    {"model": {"resnext50": "resneXt50"}, "ice_clf": {float("nan"): "Not-Applicable"}},
+    inplace=True,
+)
+pcbm_7pt_df.replace({"model": {"resnext50": "resneXt50"}}, inplace=True)
+pcbm_df.replace({"model": {"resnext50": "resneXt50"}}, inplace=True)
+pcbm_woe_df.replace({"model": {"resnext50": "resneXt50"}}, inplace=True)
 
 # Handle ICE
 ice_concept_stats = defaultdict(list)
