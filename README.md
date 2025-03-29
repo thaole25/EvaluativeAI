@@ -1,10 +1,20 @@
-# Visual Evaluative AI - EvaSKan
+# Evaluative AI
 
-**Visual Evaluative AI** is a tool for decision support by providing positive and negative evidence for a given hypothesis. This tool finds high-level human concepts in an image and generates the Weight of Evidence (WoE) for each hypothesis in the decision-making process. We also apply this tool in the skin cancer domain by building a web-based application that allows users to upload a dermatoscopic image, select a hypothesis and analyse their decisions by evaluating the provided evidence.
+**Evaluative AI** is a tool for decision support by providing positive and negative evidence for a given hypothesis. This tool is currently used for two types of dataset (tabular vs. image) as shown below.
 
-By applying this tool, we build a web-based application called **EvaSKan** to evaluate dermatoscopic images. Users can select a hypothesis and the application will generate positive/negative evidence for that particular hypothesis.
+1. Tabular dataset
 
-![demo](img/EvaSKan.png)
+<img src="img/tabular-output.png" width="400" alt="">
+
+**Figure 1: Example of tabular data analysis showing positive and negative evidence for hypothesis low**. [Paper: A Hypothesis-Driven Approach to Decision Support Using Evidence](https://arxiv.org/abs/2402.01292)
+
+2. Image dataset
+
+<img src="img/image-output.png" alt="">
+
+**Figure 2: Example of image data analysis showing positive and negative evidence for a skin cancer diagnosis**
+
+This tool finds high-level human-understandable concepts (e.g., Irregular Pigmentation) in an image and generates the Weight of Evidence (WoE) for each hypothesis in the decision-making process. A full paper is under-review. A short paper for this example is here: [Visual Evaluative AI: A Hypothesis-Driven Tool with Concept-Based Explanations and Weight of Evidence](https://arxiv.org/abs/2407.04710).
 
 ## Prerequisites
 ### Environment
@@ -45,7 +55,6 @@ EvaluativeAI
 │   ├── explainer.py
 │   ├── model_wrapper.py
 │   └── utils.py
-├── ice_clfs.py
 ├── learn_concepts_dataset.py
 ├── main.py
 ├── pcbm
@@ -80,12 +89,15 @@ EvaluativeAI
 └── woe
     ├── __init__.py
     ├── explainers.py
-    ├── utils.py
     ├── woe.py
     └── woe_utils.py
+└── online_data
+└── example-image.ipynb
+└── example-tabular.ipynb
 ```
 
 ## Datasets
+- Ames Housing Dataset: [Github Link](https://github.com/at-tan/Cracking_Ames_Housing_OLS)
 - HAM10000 dataset: Skin lesion classification dataset - [Kaggle Link](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000)
 - Derm7pt: Dermatology concepts dataset - [Link](https://derm.cs.sfu.ca/Welcome.html)
 
@@ -125,16 +137,3 @@ python app.py --algo pcbm
 - [WoE package](https://github.com/dmelis/interpretwoe)
 - [ICE package](https://github.com/zhangrh93/InvertibleCE)
 - [PCBM package](https://github.com/mertyg/post-hoc-cbm)
-
-# Citation
-```bibtex
-@misc{le2024visualevaluativeaihypothesisdriven,
-      title={Visual Evaluative AI: A Hypothesis-Driven Tool with Concept-Based Explanations and Weight of Evidence},
-      author={Thao Le, Tim Miller, Ruihan Zhang, Liz Sonenberg, Ronal Singh},
-      year={2024},
-      eprint={2407.04710},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2407.04710},
-}
-```

@@ -113,7 +113,6 @@ NUM_TEST_PER_CLASS = 20
 NUM_VAL_PER_CLASS = 20
 TARGET_CLASSES = [0, 1, 2, 3, 4, 5, 6]
 NUM_CLASSES = len(TARGET_CLASSES)
-CLASSES_NAMES = ["_".join([str(idx), LESION_NAMES[idx]]) for idx in TARGET_CLASSES]
 
 # Backbone models
 CNN_BACKBONES = [

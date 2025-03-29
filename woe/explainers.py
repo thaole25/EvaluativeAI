@@ -198,9 +198,7 @@ class WoEVisualisation:
         self,
         figsize: Tuple[int, int] = (8, 4),
         ax: Optional[plt.Axes] = None,
-        show: bool = True,
         include_lods: bool = False,
-        save_path: Optional[str] = None,
         attrib_ord: List = [],
         woe: List = [],
     ) -> plt.Axes:
@@ -209,9 +207,7 @@ class WoEVisualisation:
         Args:
             figsize: Figure size (width, height)
             ax: Matplotlib axes to plot on (created if None)
-            show: Whether to display the plot
             include_lods: Whether to include log odds in the plot
-            save_path: Path to save the figure
             evidence_type: Evidence type ("negative", "positive" or "all")
 
         Returns:
@@ -232,15 +228,6 @@ class WoEVisualisation:
         vals = np.array(vals)
         ypos = np.arange(len(cats))
 
-        # Format class names for title
-        entailed_str = ",".join([str(self.class_names[c]) for c in self.h_entailed])
-        if len(self.h_contrast) == len(self.class_names) - len(self.h_entailed):
-            contrast_str = ""
-        else:
-            contrast_str = (
-                "(vs " + ",".join([self.class_names[c] for c in self.h_contrast]) + ")"
-            )
-
         # Plot bars with colors based on value
         bar_colors = self._set_color_bars(values_to_bin=vals)
         ax.barh(ypos, vals, align="center", color=bar_colors, zorder=2, height=0.5)
@@ -250,11 +237,7 @@ class WoEVisualisation:
         ax.set_yticklabels(cats, fontsize=17)
         ax.invert_yaxis()  # labels read top-to-bottom
 
-        # Set title and limits
-        ax.set_title(
-            f"Weight of Evidence for: $\\bf{{{entailed_str}}}$ {contrast_str}",
-            fontsize=18,
-        )
+        # Set limits
         ax.set_xlim(
             -1 + min(np.min(self.attwoes), -6), max(6, np.max(self.attwoes)) + 1
         )
@@ -741,7 +724,7 @@ class WoEExplainer:
             ax2 = fig.add_subplot(gs[0, 1]) if show_ranges else None
 
             # Generate plots
-            expl.plot(ax=ax0, show=False, attrib_ord=attrib_ord, woe=woe)
+            expl.plot(ax=ax0, attrib_ord=attrib_ord, woe=woe)
             if show_bayes:
                 expl.plot_bayes(ax=ax1)
         elif data_type == "image":
@@ -767,6 +750,10 @@ class WoEExplainer:
                 original_h=original_h,
                 Exp=Exp,
             )
+        selected_classes = ",".join([str(expl.class_names[c]) for c in expl.h_entailed])
+        fig.suptitle(
+            f"Weight of Evidence for: $\\bf{{{selected_classes}}}$", fontsize=25
+        )
         # Save or show figure
         if save_path:
             plt.savefig(save_path, bbox_inches="tight", dpi=100)

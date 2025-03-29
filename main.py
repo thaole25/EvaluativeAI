@@ -73,7 +73,6 @@ if __name__ == "__main__":
 
     print("TIME NOW: ", now)
     print("EXP METHOD: ", args.algo)
-    print("CLASSES NAMES:{}".format(params.CLASSES_NAMES))
     print("NO CONCEPTS:{}".format(args.no_concepts))
     print("CNN MODEL: {}".format(args.model))
     print("SEED: ", args.seed)

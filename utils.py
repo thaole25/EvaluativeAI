@@ -201,7 +201,7 @@ class ConceptUtils:
             args=self.args,
             title=self.title,
             layer_name=LAYER_NAME,
-            class_names=params.CLASSES_NAMES,
+            class_names=params.DXLABELS,
             utils=ImageUtils(
                 mode="ham10000",
                 img_format="channels_first",
@@ -320,7 +320,7 @@ class ConceptUtils:
             args=self.args,
             title=self.title,
             layer_name=LAYER_NAME,
-            class_names=params.CLASSES_NAMES,
+            class_names=params.DXLABELS,
             utils=ImageUtils(
                 mode="ham10000",
                 img_format="channels_first",
@@ -545,7 +545,7 @@ class WoeUtils:
         self.woeexplainer = WoEExplainer(
             woe_model,
             total_woe_correction=total_woe_correction,
-            classes=params.CLASSES_NAMES,
+            classes=params.DXLABELS,
             features=FEATURE_NAMES,
             featgroup_idxs=FEATGROUP_IDXS,
             featgroup_names=FEATGROUP_NAMES,
