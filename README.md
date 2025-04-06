@@ -45,7 +45,6 @@ save_model
 EvaluativeAI
 ├── Explainers
 ├── README.md
-├── app.py
 ├── classifiers.py
 ├── config.py
 ├── eval.py
@@ -121,17 +120,6 @@ To reproduce the results in the paper [Visual Evaluative AI: A Hypothesis-Driven
     + For unsupervised learning concept, train the concept model ICE
     + For supervised learning concept, we first need to train the concept bank using the 7pt checklist dataset, then train the concept model PCBM using the HAM10000 dataset
 - Please refer to `reproducibility/script/scratch.sh` for training from scratch
-
-### Run the app
-Before running the app, please download the `for_app.zip` [Download](https://doi.org/10.5281/zenodo.11205936) and follow the code structure to put them in the right place.
-
-```
-# Use an unsupervised learning concept model (ICE)
-python app.py --algo ice
-
-# Use a supervised learning concept model (PCBM)
-python app.py --algo pcbm
-```
 
 ## References
 - [WoE package](https://github.com/dmelis/interpretwoe)
