@@ -49,7 +49,7 @@ PCBM_CLFS = ["sgd", "ridge"]
 
 FEATURE_TYPES = ["mean"]
 IS_TRAIN_CLFS = [False, True]
-ICE_CLFS = ["ridge", "gnb", "Not-Applicable"]
+ICE_CLFS = ["ridge", "gnb", "logistic", "Not-Applicable"]
 REDUCERS = ["NMF", "PCA"]
 WOE_CLFS = ["original"]
 SELECTED_MEASURES = ["acc", "sensitivity", "precision", "f1_score"]
@@ -320,13 +320,13 @@ for model in MODELS:
     ridx = 0
     selected_ice_df = ice_stats_df[
         (ice_stats_df["backbone_model"] == model)
-        & (ice_stats_df["ICE no concepts"] == 8)
+        & (ice_stats_df["ICE no concepts"] == 7)
         & (ice_stats_df["is_train_clf"] == False)
         & (ice_stats_df["reducer"] == "NMF")
     ]
     selected_ridge_ice_df = ice_stats_df[
         (ice_stats_df["backbone_model"] == model)
-        & (ice_stats_df["ICE no concepts"] == 8)
+        & (ice_stats_df["ICE no concepts"] == 7)
         & (ice_stats_df["reducer"] == "NMF")
         & (ice_stats_df["is_train_clf"] == True)
         & (ice_stats_df["ice_clf"] == "ridge")
@@ -344,7 +344,7 @@ for model in MODELS:
         & (pcbm_stats_df["7pt no training samples"] == 50)
     ]
     for i, submodel in enumerate(SUBMODELS_ICE):
-        latex_df.loc[ridx + i] = [model + " " + submodel + "(8)"] + selected_ice_df[
+        latex_df.loc[ridx + i] = [model + " " + submodel + "(7)"] + selected_ice_df[
             [
                 submodel + "_precision",
                 submodel + "_sensitivity",
@@ -352,7 +352,7 @@ for model in MODELS:
             ]
         ].values.flatten().tolist()
     ridx = ridx + len(SUBMODELS_ICE)
-    latex_df.loc[ridx] = [model + " " + "ridge ice(8)"] + selected_ridge_ice_df[
+    latex_df.loc[ridx] = [model + " " + "ridge ice(7)"] + selected_ridge_ice_df[
         [
             "ice_precision",
             "ice_sensitivity",

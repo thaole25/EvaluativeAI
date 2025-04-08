@@ -82,7 +82,6 @@ EvaluativeAI
 │       └── scratch.sh
 ├── results
 ├── requirements.txt
-├── test_data
 ├── train_cnn.py
 ├── utils.py
 └── woe
@@ -108,7 +107,7 @@ Please put the datasets in the right folder followed the code structure above.
 To reproduce the results in the paper [Visual Evaluative AI: A Hypothesis-Driven Tool with Concept-Based Explanations and Weight of Evidence](https://arxiv.org/abs/2407.04710), please either use pre-trained models or train from scratch as described below. Then, run `python eval.py > results/computational.txt` to see the results.
 
 #### Use pre-trained models
-- Available pre-trained models [Download](https://doi.org/10.5281/zenodo.11205936)
+- Available pre-trained models [Download](https://doi.org/10.5281/zenodo.11205935)
     + Pre-trained CNN backbones Resnet50, ResneXt50 and Resnet152: in the folder `save_model` 
     + Pre-trained concept models ICE, PCBM: pickle files in the folder `Explainers`
     + Pre-trained concept bank for PCBM: in the folder `pcbm_output`
