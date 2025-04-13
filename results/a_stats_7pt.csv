@@ -1,0 +1,4 @@
+,backbone_model,backbone_model_mean,backbone_model_std,learning rate,7pt no training samples,PCBM no concepts,7PT 95\% CI,7pt_mean,7pt_std,7PT Accuracy,7pt_max
+0,resnet50,79.54,5.45,0.01,50,12,"[np.float64(0.67), np.float64(0.69)]",0.68,0.06,$0.68 \pm 0.06$,0.83
+1,resneXt50,82.36,4.19,0.01,50,12,"[np.float64(0.66), np.float64(0.68)]",0.67,0.06,$0.67 \pm 0.06$,0.84
+2,resnet152,80.21,5.52,0.01,50,12,"[np.float64(0.68), np.float64(0.7)]",0.69,0.06,$0.69 \pm 0.06$,0.84

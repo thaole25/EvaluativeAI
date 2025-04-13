@@ -22,8 +22,8 @@ done
 
 nconcepts=(5 10 15 20 25 30 35 40)
 reducers=(NMF PCA)
-ICE_CLFS=(ridge gnb)
-WOE_CLFS=(original) # mlp lda gnb logistic
+ICE_CLFS=(logistic ridge gnb)
+WOE_CLFS=(original)
 
 for model in "${models[@]}"; do
     for reducer in "${reducers[@]}"; do

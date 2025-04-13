@@ -1,0 +1,144 @@
+\begin{tabular}{llll}
+\toprule
+model & accuracy & 95\% CI & time cost (s) \\
+\midrule
+resnet50 & $79.54 \pm 5.45$ & [77.15, 81.92] & $818.56 \pm 282.88$ \\
+resneXt50 & $82.36 \pm 4.19$ & [80.52, 84.19] & $959.29 \pm 344.22$ \\
+resnet152 & $80.21 \pm 5.52$ & [77.79, 82.64] & $1310.08 \pm 465.53$ \\
+\bottomrule
+\end{tabular}
+
+resneXt50 4 False NMF
+ice vs. woe TtestResult(statistic=np.float64(-5.750159384301037), pvalue=np.float64(1.2534835938909785e-06), df=np.float64(38.0)) -1.8183600563382731
+original vs. woe TtestResult(statistic=np.float64(4.908335324257284), pvalue=np.float64(1.7670871335824472e-05), df=np.float64(38.0)) 1.5521519144514127
+original vs. ice TtestResult(statistic=np.float64(-10.505794283518258), pvalue=np.float64(8.511189329760982e-13), df=np.float64(38.0)) -3.3222238565094453
+resneXt50 5 False NMF
+ice vs. woe TtestResult(statistic=np.float64(-5.8738918729379455), pvalue=np.float64(8.479077078186017e-07), df=np.float64(38.0)) -1.857487704803627
+original vs. woe TtestResult(statistic=np.float64(3.925945813301726), pvalue=np.float64(0.00035155666054129933), df=np.float64(38.0)) 1.2414930740435628
+original vs. ice TtestResult(statistic=np.float64(-11.398635885931075), pvalue=np.float64(7.94847376428761e-14), df=np.float64(38.0)) -3.6045651618473444
+resneXt50 6 False NMF
+ice vs. woe TtestResult(statistic=np.float64(-1.883010291226864), pvalue=np.float64(0.06737063208646743), df=np.float64(38.0)) -0.5954601377813865
+original vs. woe TtestResult(statistic=np.float64(2.6839804544365755), pvalue=np.float64(0.010717275089951402), df=np.float64(38.0)) 0.8487491431393359
+original vs. ice TtestResult(statistic=np.float64(-4.56333371323331), pvalue=np.float64(5.140598759908818e-05), df=np.float64(38.0)) -1.4430528257250914
+resneXt50 7 False NMF
+ice vs. woe TtestResult(statistic=np.float64(0.5644860352459752), pvalue=np.float64(0.5757405483842009), df=np.float64(38.0)) 0.17850615787353677
+original vs. woe TtestResult(statistic=np.float64(0.5588127012662711), pvalue=np.float64(0.5795679993347944), df=np.float64(38.0)) 0.17671209214326755
+original vs. ice TtestResult(statistic=np.float64(0.001164161892583334), pvalue=np.float64(0.9990772236213723), df=np.float64(38.0)) 0.0003681403145735618
+resneXt50 8 False NMF
+ice vs. woe TtestResult(statistic=np.float64(0.3919068117694538), pvalue=np.float64(0.6973164232062343), df=np.float64(38.0)) 0.1239318155726358
+original vs. woe TtestResult(statistic=np.float64(0.17524590710636276), pvalue=np.float64(0.8618168880894264), df=np.float64(38.0)) 0.055417621707839405
+original vs. ice TtestResult(statistic=np.float64(0.21827998631679746), pvalue=np.float64(0.8283789923748328), df=np.float64(38.0)) 0.0690261924391468
+resneXt50 9 False NMF
+ice vs. woe TtestResult(statistic=np.float64(0.05846536227331879), pvalue=np.float64(0.9536843276117739), df=np.float64(38.0)) 0.018488370901056723
+original vs. woe TtestResult(statistic=np.float64(0.20514847986507267), pvalue=np.float64(0.8385511077100174), df=np.float64(38.0)) 0.0648736454894822
+original vs. ice TtestResult(statistic=np.float64(-0.16169020699773143), pvalue=np.float64(0.8724064758364659), df=np.float64(38.0)) -0.051130932945692716
+\begin{tabular}{llll}
+\toprule
+Model & Precision & Recall & F1-Score \\
+\midrule
+resnet50 test(7) & $83.08 \pm 5.98$ & $85.33 \pm 6.2$ & $84.04 \pm 5.01$ \\
+resnet50 ice(7) & $73.34 \pm 8.69$ & $87.5 \pm 10.04$ & $78.99 \pm 4.91$ \\
+resnet50 woe(7) & $80.13 \pm 5.44$ & $82.0 \pm 6.81$ & $80.85 \pm 4.55$ \\
+resnet50 ridge ice(7) & $80.05 \pm 6.19$ & $85.42 \pm 9.63$ & $82.08 \pm 4.56$ \\
+resnet50 pcbm & $73.93 \pm 8.94$ & $82.08 \pm 12.67$ & $76.58 \pm 6.31$ \\
+resnet50 woe & $80.73 \pm 5.21$ & $84.25 \pm 3.35$ & $82.32 \pm 2.98$ \\
+resnet50 test(5) & $83.08 \pm 5.98$ & $85.33 \pm 6.2$ & $84.04 \pm 5.01$ \\
+resnet50 ice(5) & $66.24 \pm 10.58$ & $81.92 \pm 15.14$ & $71.55 \pm 4.99$ \\
+resnet50 woe(5) & $80.73 \pm 5.94$ & $71.58 \pm 8.68$ & $75.42 \pm 4.32$ \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+Model & Precision & Recall & F1-Score \\
+\midrule
+resneXt50 test(7) & $85.46 \pm 4.63$ & $87.25 \pm 6.31$ & $86.2 \pm 4.18$ \\
+resneXt50 ice(7) & $84.23 \pm 5.49$ & $88.58 \pm 5.41$ & $86.2 \pm 4.11$ \\
+resneXt50 woe(7) & $84.73 \pm 5.0$ & $86.33 \pm 4.76$ & $85.45 \pm 4.25$ \\
+resneXt50 ridge ice(7) & $84.85 \pm 5.06$ & $88.0 \pm 5.58$ & $86.24 \pm 3.86$ \\
+resneXt50 pcbm & $78.93 \pm 8.28$ & $83.17 \pm 14.43$ & $79.83 \pm 8.28$ \\
+resneXt50 woe & $84.48 \pm 4.86$ & $85.5 \pm 3.98$ & $84.92 \pm 3.64$ \\
+resneXt50 test(5) & $85.46 \pm 4.63$ & $87.25 \pm 6.31$ & $86.2 \pm 4.18$ \\
+resneXt50 ice(5) & $70.58 \pm 11.15$ & $82.33 \pm 14.37$ & $74.08 \pm 2.26$ \\
+resneXt50 woe(5) & $80.16 \pm 5.88$ & $82.25 \pm 8.77$ & $80.77 \pm 4.56$ \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+Model & Precision & Recall & F1-Score \\
+\midrule
+resnet152 test(7) & $84.49 \pm 6.48$ & $86.08 \pm 5.7$ & $84.96 \pm 3.09$ \\
+resnet152 ice(7) & $78.3 \pm 8.11$ & $87.42 \pm 7.48$ & $82.1 \pm 4.37$ \\
+resnet152 woe(7) & $81.21 \pm 4.9$ & $85.08 \pm 5.14$ & $83.01 \pm 4.13$ \\
+resnet152 ridge ice(7) & $80.99 \pm 5.58$ & $87.33 \pm 6.68$ & $83.82 \pm 4.34$ \\
+resnet152 pcbm & $76.49 \pm 7.75$ & $87.08 \pm 5.15$ & $81.09 \pm 4.21$ \\
+resnet152 woe & $82.97 \pm 5.37$ & $84.83 \pm 4.04$ & $83.73 \pm 2.99$ \\
+resnet152 test(5) & $84.49 \pm 6.48$ & $86.08 \pm 5.7$ & $84.96 \pm 3.09$ \\
+resnet152 ice(5) & $65.31 \pm 11.67$ & $86.92 \pm 13.27$ & $72.77 \pm 2.44$ \\
+resnet152 woe(5) & $82.25 \pm 4.78$ & $75.33 \pm 6.96$ & $78.44 \pm 4.62$ \\
+\bottomrule
+\end{tabular}
+
+Ablation studies: ICE(12) ridge vs. PCBM
+\begin{tabular}{llll}
+\toprule
+Model & Precision & Recall & F1-Score \\
+\midrule
+resnet50 ICE(12)+Ridge & $81.94 \pm 4.76$ & $85.5 \pm 6.4$ & $83.64 \pm 5.25$ \\
+resnet50 PCBM & $73.93 \pm 8.94$ & $82.08 \pm 12.67$ & $76.58 \pm 6.31$ \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+Model & Precision & Recall & F1-Score \\
+\midrule
+resneXt50 ICE(12)+Ridge & $86.08 \pm 4.73$ & $87.5 \pm 4.91$ & $86.7 \pm 4.01$ \\
+resneXt50 PCBM & $78.93 \pm 8.28$ & $83.17 \pm 14.43$ & $79.83 \pm 8.28$ \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+Model & Precision & Recall & F1-Score \\
+\midrule
+resnet152 ICE(12)+Ridge & $82.49 \pm 5.13$ & $86.92 \pm 3.64$ & $84.53 \pm 3.25$ \\
+resnet152 PCBM & $76.49 \pm 7.75$ & $87.08 \pm 5.15$ & $81.09 \pm 4.21$ \\
+\bottomrule
+\end{tabular}
+
+Ablation studies: different classification layers of ICE
+\begin{tabular}{llll}
+\toprule
+Model & Precision & Recall & F1-Score \\
+\midrule
+resnet50 ICE(7) & $73.34 \pm 8.69$ & $87.5 \pm 10.04$ & $78.99 \pm 4.91$ \\
+resnet50 ICE(7)+Ridge & $80.05 \pm 6.19$ & $85.42 \pm 9.63$ & $82.08 \pm 4.56$ \\
+resnet50 ICE(7)+GNB & $80.13 \pm 5.44$ & $82.0 \pm 6.81$ & $80.85 \pm 4.55$ \\
+resnet50 ICE(7)+WoE & $80.13 \pm 5.44$ & $82.0 \pm 6.81$ & $80.85 \pm 4.55$ \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+Model & Precision & Recall & F1-Score \\
+\midrule
+resneXt50 ICE(7) & $84.23 \pm 5.49$ & $88.58 \pm 5.41$ & $86.2 \pm 4.11$ \\
+resneXt50 ICE(7)+Ridge & $84.85 \pm 5.06$ & $88.0 \pm 5.58$ & $86.24 \pm 3.86$ \\
+resneXt50 ICE(7)+GNB & $84.73 \pm 5.0$ & $86.33 \pm 4.76$ & $85.45 \pm 4.25$ \\
+resneXt50 ICE(7)+WoE & $84.73 \pm 5.0$ & $86.33 \pm 4.76$ & $85.45 \pm 4.25$ \\
+\bottomrule
+\end{tabular}
+
+\begin{tabular}{llll}
+\toprule
+Model & Precision & Recall & F1-Score \\
+\midrule
+resnet152 ICE(7) & $78.3 \pm 8.11$ & $87.42 \pm 7.48$ & $82.1 \pm 4.37$ \\
+resnet152 ICE(7)+Ridge & $80.99 \pm 5.58$ & $87.33 \pm 6.68$ & $83.82 \pm 4.34$ \\
+resnet152 ICE(7)+GNB & $81.21 \pm 4.9$ & $85.08 \pm 5.14$ & $83.01 \pm 4.13$ \\
+resnet152 ICE(7)+WoE & $81.21 \pm 4.9$ & $85.08 \pm 5.14$ & $83.01 \pm 4.13$ \\
+\bottomrule
+\end{tabular}
+
