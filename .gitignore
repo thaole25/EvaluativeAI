@@ -20,3 +20,4 @@ local*
 cp*
 bash/
 *.out
+.DS_Store

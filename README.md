@@ -6,7 +6,7 @@
 
 <img src="img/tabular-output.png" width="400" alt="">
 
-**Figure 1: Example of tabular data analysis showing positive and negative evidence for hypothesis low**. [Paper: A Hypothesis-Driven Approach to Decision Support Using Evidence](https://arxiv.org/abs/2402.01292)
+**Figure 1: Example of tabular data analysis showing positive and negative evidence for hypothesis low**.
 
 ### 2. Image dataset
 
@@ -14,7 +14,7 @@
 
 **Figure 2: Example of image data analysis showing positive and negative evidence for a skin cancer diagnosis**
 
-This tool finds high-level human-understandable concepts (e.g., Irregular Pigmentation) in an image and generates the Weight of Evidence (WoE) for each hypothesis in the decision-making process. A full paper is under-review. A short paper for this example is here: [Visual Evaluative AI: A Hypothesis-Driven Tool with Concept-Based Explanations and Weight of Evidence](https://arxiv.org/abs/2407.04710).
+This tool finds high-level human-understandable concepts (e.g., Irregular Pigmentation) in an image and generates the Weight of Evidence (WoE) for each hypothesis in the decision-making process.
 
 ## Prerequisites
 ### Environment
@@ -119,6 +119,16 @@ To reproduce the results in the paper [Visual Evaluative AI: A Hypothesis-Driven
     + For unsupervised learning concept, train the concept model ICE
     + For supervised learning concept, we first need to train the concept bank using the 7pt checklist dataset, then train the concept model PCBM using the HAM10000 dataset
 - Please refer to `reproducibility/script/scratch.sh` for training from scratch
+
+## Paper
+```
+@article{le2025from,
+  title={{From Evidence to Decision: Exploring Evaluative AI}},
+  author={Le, Thao and Miller, Tim and Sonenberg, Liz and Singh, Ronal and Soyer, H. Peter},
+  journal={arXiv preprint arXiv:2402.01292},
+  year={2025}
+}
+```
 
 ## References
 - [WoE package](https://github.com/dmelis/interpretwoe)
