@@ -21,3 +21,4 @@ cp*
 bash/
 *.out
 .DS_Store
+server_scripts/
