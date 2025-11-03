@@ -130,6 +130,7 @@ To reproduce the results in the paper [From Evidence to Decision: Exploring Eval
   year={2025}
 }
 ```
+- Supplementary material: https://thaole25.github.io/aij-supp/
 
 ## References
 - [WoE package](https://github.com/dmelis/interpretwoe)
