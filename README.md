@@ -123,11 +123,11 @@ To reproduce the results in the paper [From Evidence to Decision: Exploring Eval
 
 ## Paper
 ```
-@article{le2025from,
+@article{le2024evidence,
   title={{From Evidence to Decision: Exploring Evaluative AI}},
-  author={Le, Thao and Miller, Tim and Sonenberg, Liz and Singh, Ronal and Soyer, H. Peter},
+  author={Le, Thao and Miller, Tim and Sonenberg, Liz and Singh, Ronal and Soyer, H Peter},
   journal={arXiv preprint arXiv:2402.01292},
-  year={2025}
+  year={2024}
 }
 ```
 - Supplementary material: https://thaole25.github.io/aij-supp/
